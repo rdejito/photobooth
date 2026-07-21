@@ -194,12 +194,17 @@ export default function LivePhotobooth() {
 
   const takePhoto = () => {
     runCountdown(() => {
-      flashScreen();
-      const localV = localVideoRef.current;
-      const remoteV = remoteVideoRef.current;
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-      const w = 640, h = 480;
+      try {
+        flashScreen();
+        const localV = localVideoRef.current;
+        const remoteV = remoteVideoRef.current;
+        const canvas = canvasRef.current;
+        if (!canvas) {
+          setCallStatus("Couldn't take photo — canvas not ready, try again.");
+          return;
+        }
+        const ctx = canvas.getContext("2d");
+        const w = 640, h = 480;
 
       if (frame === "classic") {
         const pad = 16, headerH = 60;
@@ -313,6 +318,10 @@ export default function LivePhotobooth() {
       setGallery((prev) => [entry, ...prev]);
 
       setShowStrip(true);
+      } catch (err) {
+        console.error("Failed to capture photo:", err);
+        setCallStatus("Something went wrong taking the photo — check the console and try again.");
+      }
     });
   };
 
@@ -474,7 +483,6 @@ export default function LivePhotobooth() {
 
           {showStrip && (
             <div style={{ marginTop: 20, textAlign: "center" }}>
-              <canvas ref={canvasRef} style={{ borderRadius: 10, border: "4px solid #fff", maxWidth: "90vw" }} />
               <div style={{ marginTop: 10 }}>
                 <ActionButton onClick={() => downloadPhoto(canvasRef.current.toDataURL("image/png"))}>
                   ⬇️ Download Photo
@@ -484,6 +492,17 @@ export default function LivePhotobooth() {
               <div style={{ fontSize: 12, opacity: 0.75, marginTop: 6 }}>Saved to your gallery below ✅</div>
             </div>
           )}
+
+          <canvas
+            ref={canvasRef}
+            style={{
+              display: showStrip ? "block" : "none",
+              marginTop: 12,
+              borderRadius: 10,
+              border: "4px solid #fff",
+              maxWidth: "90vw",
+            }}
+          />
 
           {showGallery && (
             <div
