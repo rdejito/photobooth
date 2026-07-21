@@ -29,13 +29,21 @@ function roundRectPath(ctx, x, y, w, h, r) {
 
 // Turns a human-friendly room code into a valid, fairly-unique PeerJS id
 function roomToPeerId(room) {
-  return "photobooth-" + room.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+  return (
+    "photobooth-" +
+    room
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+  );
 }
 
 export default function LivePhotobooth() {
   const [stage, setStage] = useState("join"); // join | call
   const [roomInput, setRoomInput] = useState("");
-  const [joinStatus, setJoinStatus] = useState("Share the same code with the other person.");
+  const [joinStatus, setJoinStatus] = useState(
+    "Share the same code with the other person.",
+  );
   const [callStatus, setCallStatus] = useState("");
   const [connected, setConnected] = useState(false);
   const [frame, setFrame] = useState("classic");
@@ -61,7 +69,10 @@ export default function LivePhotobooth() {
   const localStreamRef = useRef(null);
 
   const getMedia = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    });
     localStreamRef.current = stream;
     if (localVideoRef.current) localVideoRef.current.srcObject = stream;
     return stream;
@@ -70,7 +81,8 @@ export default function LivePhotobooth() {
   const wireUpCall = (call) => {
     callRef.current = call;
     call.on("stream", (remoteStream) => {
-      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = remoteStream;
+      if (remoteVideoRef.current)
+        remoteVideoRef.current.srcObject = remoteStream;
       setConnected(true);
       setCallStatus("Connected! Say cheese 🧀");
     });
@@ -85,19 +97,25 @@ export default function LivePhotobooth() {
 
   // Creator: registers under the room's peer id and waits for an incoming call
   const createRoom = async () => {
-    const room = (roomInput || Math.random().toString(36).slice(2, 7)).toUpperCase();
+    const room = (
+      roomInput || Math.random().toString(36).slice(2, 7)
+    ).toUpperCase();
     setRoomInput(room);
     const peerId = roomToPeerId(room);
 
     setStage("call");
-    setCallStatus(`Room "${room}" created. Waiting for the other person to join...`);
+    setCallStatus(
+      `Room "${room}" created. Waiting for the other person to join...`,
+    );
     const stream = await getMedia();
 
     const peer = new Peer(peerId);
     peerRef.current = peer;
 
     peer.on("open", () => {
-      setCallStatus(`Room "${room}" created. Waiting for the other person to join...`);
+      setCallStatus(
+        `Room "${room}" created. Waiting for the other person to join...`,
+      );
     });
 
     peer.on("call", (incomingCall) => {
@@ -107,7 +125,9 @@ export default function LivePhotobooth() {
 
     peer.on("error", (err) => {
       if (err.type === "unavailable-id") {
-        setCallStatus('That room code is already in use right now — try a different one.');
+        setCallStatus(
+          "That room code is already in use right now — try a different one.",
+        );
       } else {
         setCallStatus("Connection error: " + err.type);
       }
@@ -140,14 +160,19 @@ export default function LivePhotobooth() {
     });
 
     peer.on("error", (err) => {
-      setCallStatus("Connection error: " + err.type + " — check the room code and try again.");
+      setCallStatus(
+        "Connection error: " +
+          err.type +
+          " — check the room code and try again.",
+      );
     });
   };
 
   const leaveRoom = () => {
     if (callRef.current) callRef.current.close();
     if (peerRef.current) peerRef.current.destroy();
-    if (localStreamRef.current) localStreamRef.current.getTracks().forEach((t) => t.stop());
+    if (localStreamRef.current)
+      localStreamRef.current.getTracks().forEach((t) => t.stop());
     setConnected(false);
     setShowStrip(false);
     setStage("join");
@@ -157,7 +182,8 @@ export default function LivePhotobooth() {
     return () => {
       if (callRef.current) callRef.current.close();
       if (peerRef.current) peerRef.current.destroy();
-      if (localStreamRef.current) localStreamRef.current.getTracks().forEach((t) => t.stop());
+      if (localStreamRef.current)
+        localStreamRef.current.getTracks().forEach((t) => t.stop());
     };
   }, []);
 
@@ -204,123 +230,167 @@ export default function LivePhotobooth() {
           return;
         }
         const ctx = canvas.getContext("2d");
-        const w = 640, h = 480;
+        const w = 640,
+          h = 480;
 
-      if (frame === "classic") {
-        const pad = 16, headerH = 60;
-        canvas.width = w * 2 + pad * 3;
-        canvas.height = h + pad * 2 + headerH;
-        ctx.fillStyle = "#fff8e7";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        drawMirroredVideo(ctx, localV, pad, pad + headerH, w, h);
-        drawMirroredVideo(ctx, remoteV, pad * 2 + w, pad + headerH, w, h);
-        ctx.strokeStyle = "#ff2d75";
-        ctx.lineWidth = 4;
-        ctx.strokeRect(pad, pad + headerH, w, h);
-        ctx.strokeRect(pad * 2 + w, pad + headerH, w, h);
-        ctx.fillStyle = "#ff2d75";
-        ctx.font = "bold 28px Courier New";
-        ctx.textAlign = "center";
-        ctx.fillText("📸 LIVE PHOTOBOOTH — " + new Date().toLocaleDateString(), canvas.width / 2, 38);
-      } else if (frame === "arcade") {
-        const pad = 14, headerH = 54, footerH = 30;
-        canvas.width = w * 2 + pad * 3;
-        canvas.height = h + pad * 2 + headerH + footerH;
-        ctx.fillStyle = "#0b0033";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = "#00ffe1";
-        ctx.lineWidth = 6;
-        ctx.strokeRect(4, 4, canvas.width - 8, canvas.height - 8);
-        ctx.strokeStyle = "#ff2d75";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
-        drawMirroredVideo(ctx, localV, pad, pad + headerH, w, h);
-        drawMirroredVideo(ctx, remoteV, pad * 2 + w, pad + headerH, w, h);
-        ctx.strokeStyle = "#ffcc00";
-        ctx.lineWidth = 4;
-        ctx.strokeRect(pad, pad + headerH, w, h);
-        ctx.strokeRect(pad * 2 + w, pad + headerH, w, h);
-        ctx.fillStyle = "#00ffe1";
-        ctx.font = "bold 26px Courier New";
-        ctx.textAlign = "center";
-        ctx.shadowColor = "#00ffe1";
-        ctx.shadowBlur = 10;
-        ctx.fillText("▓▓ PLAYER 1  +  PLAYER 2 ▓▓", canvas.width / 2, 36);
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = "#ff2d75";
-        ctx.font = "16px Courier New";
-        ctx.fillText("INSERT COIN TO CONTINUE — " + new Date().toLocaleDateString(), canvas.width / 2, canvas.height - 12);
-      } else if (frame === "polaroid") {
-        const cardPad = 22, gap = 24, bottomPad = 70;
-        const cardW = w * 0.7, cardH = h * 0.7;
-        canvas.width = cardW * 2 + cardPad * 2 + gap;
-        canvas.height = cardH + bottomPad + cardPad * 2;
-        ctx.fillStyle = "#d8cfc3";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        const polaroidCard = (video, x, y, label) => {
-          ctx.save();
-          ctx.shadowColor = "rgba(0,0,0,0.4)";
-          ctx.shadowBlur = 12;
-          ctx.shadowOffsetY = 6;
-          ctx.fillStyle = "#fffdf8";
-          ctx.fillRect(x, y, cardW, cardH + bottomPad);
-          ctx.restore();
-          drawMirroredVideo(ctx, video, x + 10, y + 10, cardW - 20, cardH - 20);
-          ctx.fillStyle = "#333";
-          ctx.font = "italic 18px Courier New";
+        if (frame === "classic") {
+          const pad = 16,
+            headerH = 60;
+          canvas.width = w * 2 + pad * 3;
+          canvas.height = h + pad * 2 + headerH;
+          ctx.fillStyle = "#fff8e7";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          drawMirroredVideo(ctx, localV, pad, pad + headerH, w, h);
+          drawMirroredVideo(ctx, remoteV, pad * 2 + w, pad + headerH, w, h);
+          ctx.strokeStyle = "#ff2d75";
+          ctx.lineWidth = 4;
+          ctx.strokeRect(pad, pad + headerH, w, h);
+          ctx.strokeRect(pad * 2 + w, pad + headerH, w, h);
+          ctx.fillStyle = "#ff2d75";
+          ctx.font = "bold 28px Courier New";
           ctx.textAlign = "center";
-          ctx.fillText(label, x + cardW / 2, y + cardH + 40);
-        };
-        polaroidCard(localV, cardPad, cardPad, "you 💕");
-        polaroidCard(remoteV, cardPad * 2 + cardW + gap - cardPad, cardPad, "them 💕");
-      } else if (frame === "film") {
-        const holeR = 10, holeGap = 34, sideStripW = 44, pad = 10;
-        canvas.width = w * 2 + pad * 3 + sideStripW * 2;
-        canvas.height = h + pad * 2;
-        ctx.fillStyle = "#111";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillText(
+            "📸 LIVE PHOTOBOOTH — " + new Date().toLocaleDateString(),
+            canvas.width / 2,
+            38,
+          );
+        } else if (frame === "arcade") {
+          const pad = 14,
+            headerH = 54,
+            footerH = 30;
+          canvas.width = w * 2 + pad * 3;
+          canvas.height = h + pad * 2 + headerH + footerH;
+          ctx.fillStyle = "#0b0033";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.strokeStyle = "#00ffe1";
+          ctx.lineWidth = 6;
+          ctx.strokeRect(4, 4, canvas.width - 8, canvas.height - 8);
+          ctx.strokeStyle = "#ff2d75";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+          drawMirroredVideo(ctx, localV, pad, pad + headerH, w, h);
+          drawMirroredVideo(ctx, remoteV, pad * 2 + w, pad + headerH, w, h);
+          ctx.strokeStyle = "#ffcc00";
+          ctx.lineWidth = 4;
+          ctx.strokeRect(pad, pad + headerH, w, h);
+          ctx.strokeRect(pad * 2 + w, pad + headerH, w, h);
+          ctx.fillStyle = "#00ffe1";
+          ctx.font = "bold 26px Courier New";
+          ctx.textAlign = "center";
+          ctx.shadowColor = "#00ffe1";
+          ctx.shadowBlur = 10;
+          ctx.fillText("▓▓ PLAYER 1  +  PLAYER 2 ▓▓", canvas.width / 2, 36);
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = "#ff2d75";
+          ctx.font = "16px Courier New";
+          ctx.fillText(
+            "INSERT COIN TO CONTINUE — " + new Date().toLocaleDateString(),
+            canvas.width / 2,
+            canvas.height - 12,
+          );
+        } else if (frame === "polaroid") {
+          const cardPad = 22,
+            gap = 24,
+            bottomPad = 70;
+          const cardW = w * 0.7,
+            cardH = h * 0.7;
+          canvas.width = cardW * 2 + cardPad * 2 + gap;
+          canvas.height = cardH + bottomPad + cardPad * 2;
+          ctx.fillStyle = "#d8cfc3";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        const sprocketStrip = (x) => {
+          const polaroidCard = (video, x, y, label) => {
+            ctx.save();
+            ctx.shadowColor = "rgba(0,0,0,0.4)";
+            ctx.shadowBlur = 12;
+            ctx.shadowOffsetY = 6;
+            ctx.fillStyle = "#fffdf8";
+            ctx.fillRect(x, y, cardW, cardH + bottomPad);
+            ctx.restore();
+            drawMirroredVideo(
+              ctx,
+              video,
+              x + 10,
+              y + 10,
+              cardW - 20,
+              cardH - 20,
+            );
+            ctx.fillStyle = "#333";
+            ctx.font = "italic 18px Courier New";
+            ctx.textAlign = "center";
+            ctx.fillText(label, x + cardW / 2, y + cardH + 40);
+          };
+          polaroidCard(localV, cardPad, cardPad, "you 💕");
+          polaroidCard(
+            remoteV,
+            cardPad * 2 + cardW + gap - cardPad,
+            cardPad,
+            "them 💕",
+          );
+        } else if (frame === "film") {
+          const holeR = 10,
+            holeGap = 34,
+            sideStripW = 44,
+            pad = 10;
+          canvas.width = w * 2 + pad * 3 + sideStripW * 2;
+          canvas.height = h + pad * 2;
           ctx.fillStyle = "#111";
-          ctx.fillRect(x, 0, sideStripW, canvas.height);
-          ctx.fillStyle = "#f5f0e6";
-          for (let y = holeGap / 2; y < canvas.height; y += holeGap) {
-            roundRectPath(ctx, x + sideStripW / 2 - holeR, y - holeR, holeR * 2, holeR * 2, 3);
-            ctx.fill();
-          }
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          const sprocketStrip = (x) => {
+            ctx.fillStyle = "#111";
+            ctx.fillRect(x, 0, sideStripW, canvas.height);
+            ctx.fillStyle = "#f5f0e6";
+            for (let y = holeGap / 2; y < canvas.height; y += holeGap) {
+              roundRectPath(
+                ctx,
+                x + sideStripW / 2 - holeR,
+                y - holeR,
+                holeR * 2,
+                holeR * 2,
+                3,
+              );
+              ctx.fill();
+            }
+          };
+          sprocketStrip(0);
+          sprocketStrip(canvas.width - sideStripW);
+
+          drawMirroredVideo(ctx, localV, sideStripW + pad, pad, w, h);
+          drawMirroredVideo(ctx, remoteV, sideStripW + pad * 2 + w, pad, w, h);
+          ctx.fillStyle = "rgba(255,180,90,0.08)";
+          ctx.fillRect(
+            sideStripW,
+            0,
+            canvas.width - sideStripW * 2,
+            canvas.height,
+          );
+          ctx.strokeStyle = "#f5f0e6";
+          ctx.lineWidth = 3;
+          ctx.strokeRect(sideStripW + pad, pad, w, h);
+          ctx.strokeRect(sideStripW + pad * 2 + w, pad, w, h);
+        } else {
+          canvas.width = w * 2 + 8;
+          canvas.height = h;
+          drawMirroredVideo(ctx, localV, 0, 0, w, h);
+          drawMirroredVideo(ctx, remoteV, w + 8, 0, w, h);
+        }
+
+        const dataUrl = canvas.toDataURL("image/png");
+        const entry = {
+          id: Date.now(),
+          dataUrl,
+          frame,
+          takenAt: new Date().toLocaleString(),
         };
-        sprocketStrip(0);
-        sprocketStrip(canvas.width - sideStripW);
+        setGallery((prev) => [entry, ...prev]);
 
-        drawMirroredVideo(ctx, localV, sideStripW + pad, pad, w, h);
-        drawMirroredVideo(ctx, remoteV, sideStripW + pad * 2 + w, pad, w, h);
-        ctx.fillStyle = "rgba(255,180,90,0.08)";
-        ctx.fillRect(sideStripW, 0, canvas.width - sideStripW * 2, canvas.height);
-        ctx.strokeStyle = "#f5f0e6";
-        ctx.lineWidth = 3;
-        ctx.strokeRect(sideStripW + pad, pad, w, h);
-        ctx.strokeRect(sideStripW + pad * 2 + w, pad, w, h);
-      } else {
-        canvas.width = w * 2 + 8;
-        canvas.height = h;
-        drawMirroredVideo(ctx, localV, 0, 0, w, h);
-        drawMirroredVideo(ctx, remoteV, w + 8, 0, w, h);
-      }
-
-      const dataUrl = canvas.toDataURL("image/png");
-      const entry = {
-        id: Date.now(),
-        dataUrl,
-        frame,
-        takenAt: new Date().toLocaleString(),
-      };
-      setGallery((prev) => [entry, ...prev]);
-
-      setShowStrip(true);
+        setShowStrip(true);
       } catch (err) {
         console.error("Failed to capture photo:", err);
-        setCallStatus("Something went wrong taking the photo — check the console and try again.");
+        setCallStatus(
+          "Something went wrong taking the photo — check the console and try again.",
+        );
       }
     });
   };
@@ -398,12 +468,23 @@ export default function LivePhotobooth() {
             <ActionButton onClick={createRoom}>Create Room</ActionButton>
             <ActionButton onClick={joinRoom}>Join Room</ActionButton>
           </div>
-          <div style={{ fontSize: 13, marginTop: 10, minHeight: 18, opacity: 0.9 }}>{joinStatus}</div>
+          <div
+            style={{ fontSize: 13, marginTop: 10, minHeight: 18, opacity: 0.9 }}
+          >
+            {joinStatus}
+          </div>
         </div>
       )}
 
       {stage === "call" && (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            width: "100%",
+          }}
+        >
           <div
             style={{
               display: "flex",
@@ -417,11 +498,22 @@ export default function LivePhotobooth() {
             }}
           >
             <div style={{ position: "relative" }}>
-              <video ref={localVideoRef} autoPlay playsInline muted style={videoStyle} />
+              <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                muted
+                style={videoStyle}
+              />
               <div style={tagStyle}>You</div>
             </div>
             <div style={{ position: "relative" }}>
-              <video ref={remoteVideoRef} autoPlay playsInline style={videoStyle} />
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                style={videoStyle}
+              />
               <div style={tagStyle}>Them</div>
             </div>
           </div>
@@ -449,15 +541,21 @@ export default function LivePhotobooth() {
               justifyContent: "center",
             }}
           >
-            <span style={{ fontSize: 13, opacity: 0.8, marginRight: 4 }}>Frame:</span>
+            <span style={{ fontSize: 13, opacity: 0.8, marginRight: 4 }}>
+              Frame:
+            </span>
             {FRAMES.map((f) => (
               <button
                 key={f.key}
                 onClick={() => setFrame(f.key)}
                 style={{
                   fontFamily: "inherit",
-                  border: frame === f.key ? "2px solid #fff" : "2px solid transparent",
-                  background: frame === f.key ? "#ffcc00" : "rgba(255,255,255,0.15)",
+                  border:
+                    frame === f.key
+                      ? "2px solid #fff"
+                      : "2px solid transparent",
+                  background:
+                    frame === f.key ? "#ffcc00" : "rgba(255,255,255,0.15)",
                   color: frame === f.key ? "#2b1055" : "#fff",
                   fontSize: 12,
                   padding: "7px 12px",
@@ -470,28 +568,62 @@ export default function LivePhotobooth() {
             ))}
           </div>
 
-          <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+          <div
+            style={{
+              marginTop: 16,
+              display: "flex",
+              gap: 10,
+              flexWrap: "wrap",
+              justifyContent: "center",
+            }}
+          >
             <ActionButton onClick={takePhoto} disabled={!connected}>
-              {connected ? "📸 Take Photo" : "📸 Take Photo (waiting for connection...)"}
+              {connected
+                ? "📸 Take Photo"
+                : "📸 Take Photo (waiting for connection...)"}
             </ActionButton>
             <ActionButton onClick={leaveRoom}>Leave Room</ActionButton>
             <ActionButton onClick={() => setShowGallery((v) => !v)}>
               🖼️ Gallery {gallery.length > 0 ? `(${gallery.length})` : ""}
             </ActionButton>
           </div>
-          <div style={{ fontSize: 13, marginTop: 10, minHeight: 18, opacity: 0.9 }}>{callStatus}</div>
+          <div
+            style={{ fontSize: 13, marginTop: 10, minHeight: 18, opacity: 0.9 }}
+          >
+            {callStatus}
+          </div>
 
-          {showStrip && (
-            <div style={{ marginTop: 20, textAlign: "center" }}>
-              <div style={{ marginTop: 10 }}>
-                <ActionButton onClick={() => downloadPhoto(canvasRef.current.toDataURL("image/png"))}>
-                  ⬇️ Download Photo
-                </ActionButton>
-                <ActionButton onClick={() => setShowStrip(false)}>Take Another</ActionButton>
-              </div>
-              <div style={{ fontSize: 12, opacity: 0.75, marginTop: 6 }}>Saved to your gallery below ✅</div>
+          <div
+            style={{
+              marginTop: 20,
+              textAlign: "center",
+              display: showStrip ? "block" : "none",
+            }}
+          >
+            <canvas
+              ref={canvasRef}
+              style={{
+                borderRadius: 10,
+                border: "4px solid #fff",
+                maxWidth: "90vw",
+              }}
+            />
+            <div style={{ marginTop: 10 }}>
+              <ActionButton
+                onClick={() =>
+                  downloadPhoto(canvasRef.current.toDataURL("image/png"))
+                }
+              >
+                ⬇️ Download Photo
+              </ActionButton>
+              <ActionButton onClick={() => setShowStrip(false)}>
+                Take Another
+              </ActionButton>
             </div>
-          )}
+            <div style={{ fontSize: 12, opacity: 0.75, marginTop: 6 }}>
+              Saved to your gallery below ✅
+            </div>
+          </div>
 
           <canvas
             ref={canvasRef}
@@ -516,20 +648,39 @@ export default function LivePhotobooth() {
                 padding: 16,
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <div style={{ fontSize: 15, fontWeight: "bold" }}>🖼️ Your Snapshots</div>
-                <div style={{ fontSize: 12, opacity: 0.75 }}>saved in this browser</div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 10,
+                }}
+              >
+                <div style={{ fontSize: 15, fontWeight: "bold" }}>
+                  🖼️ Your Snapshots
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.75 }}>
+                  saved in this browser
+                </div>
               </div>
 
               {gallery.length === 0 ? (
-                <div style={{ fontSize: 13, opacity: 0.8, textAlign: "center", padding: "20px 0" }}>
+                <div
+                  style={{
+                    fontSize: 13,
+                    opacity: 0.8,
+                    textAlign: "center",
+                    padding: "20px 0",
+                  }}
+                >
                   No snapshots yet — take a photo above and it'll show up here.
                 </div>
               ) : (
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                    gridTemplateColumns:
+                      "repeat(auto-fill, minmax(180px, 1fr))",
                     gap: 14,
                   }}
                 >
@@ -546,12 +697,25 @@ export default function LivePhotobooth() {
                       <img
                         src={p.dataUrl}
                         alt={`Snapshot from ${p.takenAt}`}
-                        style={{ width: "100%", borderRadius: 6, border: "2px solid #fff" }}
+                        style={{
+                          width: "100%",
+                          borderRadius: 6,
+                          border: "2px solid #fff",
+                        }}
                       />
                       <div style={{ fontSize: 10, opacity: 0.7, marginTop: 6 }}>
-                        {FRAMES.find((f) => f.key === p.frame)?.label || p.frame} · {p.takenAt}
+                        {FRAMES.find((f) => f.key === p.frame)?.label ||
+                          p.frame}{" "}
+                        · {p.takenAt}
                       </div>
-                      <div style={{ marginTop: 6, display: "flex", gap: 6, justifyContent: "center" }}>
+                      <div
+                        style={{
+                          marginTop: 6,
+                          display: "flex",
+                          gap: 6,
+                          justifyContent: "center",
+                        }}
+                      >
                         <button
                           onClick={() => downloadPhoto(p.dataUrl, p.id)}
                           style={{
