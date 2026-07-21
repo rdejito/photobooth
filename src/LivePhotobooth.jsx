@@ -42,6 +42,15 @@ export default function LivePhotobooth() {
   const [countdown, setCountdown] = useState(null);
   const [showFlash, setShowFlash] = useState(false);
   const [showStrip, setShowStrip] = useState(false);
+  const [gallery, setGallery] = useState(() => {
+    try {
+      const saved = localStorage.getItem("photobooth-gallery");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [showGallery, setShowGallery] = useState(false);
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -151,6 +160,15 @@ export default function LivePhotobooth() {
       if (localStreamRef.current) localStreamRef.current.getTracks().forEach((t) => t.stop());
     };
   }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("photobooth-gallery", JSON.stringify(gallery));
+    } catch (e) {
+      // localStorage might be full if there are many high-res photos saved
+      console.warn("Could not save gallery to localStorage:", e);
+    }
+  }, [gallery]);
 
   const flashScreen = () => {
     setShowFlash(true);
@@ -285,16 +303,28 @@ export default function LivePhotobooth() {
         drawMirroredVideo(ctx, remoteV, w + 8, 0, w, h);
       }
 
+      const dataUrl = canvas.toDataURL("image/png");
+      const entry = {
+        id: Date.now(),
+        dataUrl,
+        frame,
+        takenAt: new Date().toLocaleString(),
+      };
+      setGallery((prev) => [entry, ...prev]);
+
       setShowStrip(true);
     });
   };
 
-  const downloadPhoto = () => {
-    const canvas = canvasRef.current;
+  const downloadPhoto = (dataUrl, id) => {
     const a = document.createElement("a");
-    a.download = "live-photobooth-" + Date.now() + ".png";
-    a.href = canvas.toDataURL("image/png");
+    a.download = "live-photobooth-" + (id || Date.now()) + ".png";
+    a.href = dataUrl || canvasRef.current.toDataURL("image/png");
     a.click();
+  };
+
+  const deletePhoto = (id) => {
+    setGallery((prev) => prev.filter((p) => p.id !== id));
   };
 
   return (
@@ -436,6 +466,9 @@ export default function LivePhotobooth() {
               {connected ? "📸 Take Photo" : "📸 Take Photo (waiting for connection...)"}
             </ActionButton>
             <ActionButton onClick={leaveRoom}>Leave Room</ActionButton>
+            <ActionButton onClick={() => setShowGallery((v) => !v)}>
+              🖼️ Gallery {gallery.length > 0 ? `(${gallery.length})` : ""}
+            </ActionButton>
           </div>
           <div style={{ fontSize: 13, marginTop: 10, minHeight: 18, opacity: 0.9 }}>{callStatus}</div>
 
@@ -443,9 +476,98 @@ export default function LivePhotobooth() {
             <div style={{ marginTop: 20, textAlign: "center" }}>
               <canvas ref={canvasRef} style={{ borderRadius: 10, border: "4px solid #fff", maxWidth: "90vw" }} />
               <div style={{ marginTop: 10 }}>
-                <ActionButton onClick={downloadPhoto}>⬇️ Download Photo</ActionButton>
+                <ActionButton onClick={() => downloadPhoto(canvasRef.current.toDataURL("image/png"))}>
+                  ⬇️ Download Photo
+                </ActionButton>
                 <ActionButton onClick={() => setShowStrip(false)}>Take Another</ActionButton>
               </div>
+              <div style={{ fontSize: 12, opacity: 0.75, marginTop: 6 }}>Saved to your gallery below ✅</div>
+            </div>
+          )}
+
+          {showGallery && (
+            <div
+              style={{
+                marginTop: 24,
+                width: "100%",
+                maxWidth: 900,
+                background: "rgba(0,0,0,0.35)",
+                border: "2px solid #ffcc00",
+                borderRadius: 14,
+                padding: 16,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <div style={{ fontSize: 15, fontWeight: "bold" }}>🖼️ Your Snapshots</div>
+                <div style={{ fontSize: 12, opacity: 0.75 }}>saved in this browser</div>
+              </div>
+
+              {gallery.length === 0 ? (
+                <div style={{ fontSize: 13, opacity: 0.8, textAlign: "center", padding: "20px 0" }}>
+                  No snapshots yet — take a photo above and it'll show up here.
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                    gap: 14,
+                  }}
+                >
+                  {gallery.map((p) => (
+                    <div
+                      key={p.id}
+                      style={{
+                        background: "rgba(255,255,255,0.06)",
+                        borderRadius: 10,
+                        padding: 8,
+                        textAlign: "center",
+                      }}
+                    >
+                      <img
+                        src={p.dataUrl}
+                        alt={`Snapshot from ${p.takenAt}`}
+                        style={{ width: "100%", borderRadius: 6, border: "2px solid #fff" }}
+                      />
+                      <div style={{ fontSize: 10, opacity: 0.7, marginTop: 6 }}>
+                        {FRAMES.find((f) => f.key === p.frame)?.label || p.frame} · {p.takenAt}
+                      </div>
+                      <div style={{ marginTop: 6, display: "flex", gap: 6, justifyContent: "center" }}>
+                        <button
+                          onClick={() => downloadPhoto(p.dataUrl, p.id)}
+                          style={{
+                            fontFamily: "inherit",
+                            fontSize: 11,
+                            background: "#ff2d75",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 6,
+                            padding: "5px 9px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          ⬇️
+                        </button>
+                        <button
+                          onClick={() => deletePhoto(p.id)}
+                          style={{
+                            fontFamily: "inherit",
+                            fontSize: 11,
+                            background: "rgba(255,255,255,0.15)",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 6,
+                            padding: "5px 9px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
