@@ -1,33 +1,59 @@
-# Live Photobooth
+# Little Moments - Live Photobooth
 
-A two-location live video photobooth built with React + WebRTC (via PeerJS).
+A browser-based group photobooth built with React, Vite, and WebRTC via
+[PeerJS](https://peerjs.com/). Create a room, invite up to three guests, choose a
+frame, and capture a group photo.
 
-## Run it
+## For users
+
+Open the photobooth website in a modern browser and allow camera access. To use
+it with remote guests, use a publicly reachable HTTPS deployment.
+
+1. One person selects **Create a room** and shares the displayed room code.
+2. Up to three guests open the same website, enter that code, and select
+   **Join with code**.
+3. When everyone's camera is ready, the room creator chooses a frame and takes
+   the photo. Guests see the countdown and captured photo.
+4. Download the photo or find it in **Photos**. The gallery is stored in that
+   browser's local storage; it is not shared between guests or synced to a
+   server.
+
+Available frames: Classic, Arcade, Polaroid, Film Strip, and None.
+
+## For developers
+
+### Requirements
+
+- Node.js and npm
+
+### Run locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open the printed local URL (usually `http://localhost:5173`).
+Open the URL printed by Vite, usually `http://localhost:5173`. The development
+server listens on the local network, so other devices on the same Wi-Fi can open
+it using your computer's local IP address.
 
-## How to use it with someone else
+### Build and preview
 
-1. Deploy this somewhere both of you can reach (Vercel, Netlify, etc.) — `npm run dev`
-   on your own laptop only works for people on your same wifi network, since it's not
-   publicly reachable. For a quick one-off test with someone remote, you can also run
-   `npm run dev` and share your screen/tunnel it with something like `ngrok`.
-2. One person clicks **Create Room** and shares the room code.
-3. The other person enters that code and clicks **Join Room**.
-4. Once connected, pick a frame and click **Take Photo** — it does a countdown, then
-   stitches both video feeds into one image you can download.
+```bash
+npm run build
+npm run preview
+```
 
-## Notes
+The production build is written to `dist/`. Deploy that directory to a static
+host such as Vercel or Netlify. Camera access on deployed sites requires HTTPS;
+localhost is allowed for local development.
 
-- Uses [PeerJS](https://peerjs.com/)'s free public broker server to set up the
-  connection — no backend server needed. Video/audio then flows directly
-  peer-to-peer between the two browsers.
-- Works well on most home/mobile networks. Very locked-down corporate or school
-  networks may block the direct peer connection since there's no TURN relay server
-  configured.
-- Camera/mic permissions are required in both browsers.
+### Connection notes
+
+- PeerJS's public broker is used to coordinate connections. No application
+  backend is required; video streams are sent directly between browsers.
+- The app does not configure a TURN relay. Some restrictive networks may prevent
+  browsers from connecting.
+- For remote guests, deploy the site to a publicly reachable HTTPS host. A local
+  development server is only reachable by devices on the same network unless you
+  use a secure tunnel.

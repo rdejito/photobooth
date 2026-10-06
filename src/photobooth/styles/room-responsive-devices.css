@@ -1,0 +1,90 @@
+@media (min-width: 641px) and (max-width: 1024px) {
+  .room-workspace {
+    grid-template-columns: minmax(0, 1fr) 236px;
+    gap: 12px;
+  }
+
+  .room-controls-panel {
+    gap: 13px;
+    padding: 12px;
+  }
+
+  .room-shell .frame-options {
+    gap: 7px;
+  }
+
+  .room-shell .frame-option {
+    padding: 8px 6px;
+  }
+
+  .room-shell .frame-swatch {
+    height: 44px;
+  }
+
+  .frame-mini-print {
+    width: min(66px, 92%);
+    height: 32px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .room-shell {
+    width: min(1920px, 100%);
+  }
+
+  .room-workspace {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 20px;
+  }
+
+  .room-controls-panel {
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .room-shell .frame-options {
+    gap: 12px;
+  }
+
+  .room-shell .frame-option {
+    padding: 12px 10px 10px;
+  }
+
+  .room-shell .frame-swatch {
+    height: 60px;
+  }
+}
+
+@media (max-height: 720px) and (min-width: 641px) {
+  .room-intro {
+    min-height: 84px;
+    padding: 7px 0;
+  }
+
+  .room-intro h1 {
+    font-size: clamp(28px, 3.4vw, 38px);
+  }
+
+  .room-description {
+    margin-top: 4px;
+    font-size: 11px;
+  }
+
+  .room-controls-panel {
+    gap: 10px;
+    padding: 11px;
+  }
+
+  .room-shell .frame-option {
+    gap: 5px;
+    padding: 7px 6px;
+  }
+
+  .room-shell .frame-swatch {
+    height: 38px;
+  }
+
+  .frame-mini-print {
+    height: 29px;
+  }
+}

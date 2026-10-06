@@ -1,0 +1,186 @@
+@media (max-width: 640px) and (orientation: portrait) {
+  .room-shell {
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .room-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .room-controls-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+    padding: 8px;
+    border-radius: 13px;
+  }
+
+  .room-shell .frame-picker legend {
+    margin-bottom: 5px;
+    font-size: 10px;
+  }
+
+  .room-shell .frame-options {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .room-shell .frame-option {
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 4px;
+    border-radius: 7px;
+  }
+
+  .room-shell .frame-swatch {
+    height: clamp(24px, 7vw, 34px);
+  }
+
+  .frame-mini-print {
+    width: min(50px, 90%);
+    height: 21px;
+    gap: 1px;
+    padding: 2px;
+    border-width: 1px;
+  }
+
+  .frame-mini-rail {
+    width: 3px;
+    flex-basis: 3px;
+  }
+
+  .frame-option-label {
+    font-size: clamp(7px, 2vw, 9px);
+  }
+
+  .room-actions-bar {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr .85fr;
+    gap: 6px;
+  }
+
+  .room-controls-panel .room-action-button {
+    min-height: 38px;
+    justify-content: center;
+    padding: 0 5px;
+    font-size: clamp(8px, 2.4vw, 10px);
+  }
+
+  .room-controls-panel .room-action-primary {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) and (orientation: landscape) and (max-height: 500px) {
+  .room-header {
+    min-height: 38px;
+  }
+
+  .room-intro {
+    min-height: 56px;
+    padding: 4px 0;
+  }
+
+  .room-intro h1 {
+    font-size: 22px;
+  }
+
+  .room-kicker {
+    margin-bottom: 2px;
+  }
+
+  .room-code-card {
+    gap: 1px;
+    padding: 4px 7px;
+  }
+
+  .room-code-card strong {
+    font-size: 14px;
+  }
+
+  .copy-room-code {
+    padding: 2px 5px;
+  }
+
+  .room-workspace {
+    grid-template-columns: minmax(0, 1fr) 154px;
+    gap: 6px;
+  }
+
+  .room-controls-panel {
+    gap: 5px;
+    padding: 6px;
+  }
+
+  .room-shell .frame-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px;
+  }
+
+  .room-shell .frame-option {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 4px;
+    padding: 2px 3px;
+    text-align: left;
+  }
+
+  .room-shell .frame-swatch {
+    width: 29px;
+    height: 21px;
+    flex: 0 0 29px;
+  }
+
+  .frame-mini-print {
+    width: 23px;
+    height: 15px;
+    padding: 1px;
+  }
+
+  .frame-option-label {
+    width: auto;
+    font-size: 8px;
+    text-align: left;
+  }
+
+  .room-actions-bar {
+    gap: 4px;
+  }
+
+  .room-controls-panel .room-action-button {
+    min-height: 25px;
+    padding: 0 4px;
+    font-size: 7px;
+  }
+}
+
+@media (max-width: 360px) and (orientation: portrait) {
+  .room-intro {
+    min-height: 70px;
+  }
+
+  .room-code-card {
+    width: 104px;
+    min-width: 104px;
+  }
+
+  .room-controls-panel {
+    gap: 5px;
+    padding: 6px;
+  }
+
+  .room-shell .frame-options {
+    gap: 3px;
+  }
+
+  .room-shell .frame-option {
+    padding: 3px 2px;
+  }
+
+  .room-actions-bar {
+    gap: 4px;
+  }
+}

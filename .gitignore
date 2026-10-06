@@ -1,0 +1,20 @@
+node_modules/
+dist/
+.vite/
+coverage/
+reports/
+
+# Local environment configuration
+.env*
+!.env.example
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+*.log
+
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.idea/
