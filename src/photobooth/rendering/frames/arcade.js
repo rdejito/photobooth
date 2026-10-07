@@ -8,7 +8,7 @@ import {
 
 export function renderArcade(canvas, context, participants) {
   const pad = 58;
-  const gap = 10;
+  const gap = 24;
   const railWidth = 28;
   const headerHeight = 76;
   const footerHeight = 37;
@@ -41,17 +41,17 @@ export function renderArcade(canvas, context, participants) {
   context.fillText("THE WHOLE CREW", canvas.width / 2, 60);
   context.shadowBlur = 0;
 
-  drawPortraitStrip(context, participants, pad, headerHeight, PORTRAIT_WIDTH, PHOTO_HEIGHT, gap, 8);
-  context.strokeStyle = "#53f6e4";
-  context.lineWidth = 2;
-  participants.forEach((_, index) => {
-    context.strokeRect(
-      pad + index * (PORTRAIT_WIDTH + gap) - 1,
-      headerHeight - 1,
-      PORTRAIT_WIDTH + 2,
-      PHOTO_HEIGHT + 2,
-    );
-  });
+  drawPortraitStrip(
+    context,
+    participants,
+    pad,
+    headerHeight,
+    PORTRAIT_WIDTH,
+    PHOTO_HEIGHT,
+    gap,
+    8,
+    { borderColor: "#53f6e4", borderWidth: 7 },
+  );
   context.fillStyle = "#ffcc67";
   context.font = "bold 12px 'Courier New'";
   context.fillText(

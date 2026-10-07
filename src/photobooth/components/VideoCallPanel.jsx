@@ -13,14 +13,19 @@ export default function VideoCallPanel({
   roomCode,
   connected,
   isHost,
+  cameraEnabled,
+  toggleCamera,
   canCapture,
   callStatus,
   frame,
   setFrame,
   countdown,
   showPreview,
+  canCustomizePreview,
+  photoPending,
   photoDataUrl,
   takePhoto,
+  savePhoto,
   leaveRoom,
   hidePreview,
   gallery,
@@ -69,7 +74,7 @@ export default function VideoCallPanel({
           <h1>{connected ? "Everyone in frame." : "Your booth is open."}</h1>
           <p className="room-description">
             {connected
-              ? "Pick a frame, get everyone ready, and capture the whole crew."
+              ? "Get everyone ready and capture the whole crew. Choose a frame after the photo."
               : "Share the code. Up to three guests can join, and they will appear here as they arrive."}
           </p>
         </div>
@@ -111,6 +116,7 @@ export default function VideoCallPanel({
                 stream={participant.stream}
                 label={participant.label}
                 muted={participant.local}
+                cameraEnabled={participant.cameraEnabled}
               />
             ))}
           </div>
@@ -130,9 +136,9 @@ export default function VideoCallPanel({
         </div>
 
         <PhotoControls
-          frame={frame}
-          setFrame={setFrame}
           isHost={isHost}
+          cameraEnabled={cameraEnabled}
+          toggleCamera={toggleCamera}
           canCapture={canCapture}
           takePhoto={takePhoto}
           leaveRoom={leaveRoom}
@@ -144,6 +150,11 @@ export default function VideoCallPanel({
         canvasRef={canvasRef}
         imageData={photoDataUrl}
         visible={showPreview}
+        canCustomize={canCustomizePreview}
+        photoPending={photoPending}
+        frame={frame}
+        setFrame={setFrame}
+        savePhoto={savePhoto}
         hidePreview={hidePreview}
       />
       {showGallery && (

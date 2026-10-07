@@ -58,7 +58,7 @@
 
   .room-actions-bar {
     display: grid;
-    grid-template-columns: 1.2fr 1fr .85fr;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 6px;
   }
 
@@ -147,6 +147,7 @@
   }
 
   .room-actions-bar {
+    grid-template-columns: minmax(0, 1fr);
     gap: 4px;
   }
 

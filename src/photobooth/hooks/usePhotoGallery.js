@@ -24,7 +24,9 @@ export function usePhotoGallery() {
   }, [gallery]);
 
   const addPhoto = (dataUrl, frame) => {
-    setGallery((photos) => [createGalleryEntry(dataUrl, frame), ...photos]);
+    const photo = createGalleryEntry(dataUrl, frame);
+    setGallery((photos) => [photo, ...photos]);
+    return photo;
   };
 
   const deletePhoto = (id) => {

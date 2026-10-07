@@ -25,6 +25,7 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
   );
   const [callStatus, setCallStatus] = useState("");
   const [participants, setParticipants] = useState([]);
+  const [cameraEnabled, setCameraEnabled] = useState(true);
   const sessionRef = useRef(null);
 
   const startSession = async (role, room) => {
@@ -55,8 +56,19 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
           setParticipants([]);
           setJoinStatus("The room creator ended the photobooth.");
         },
+        onConnectionFailed: (message) => {
+          if (sessionRef.current !== session) return;
+          sessionRef.current = null;
+          session.destroy();
+          onCountdown(null);
+          setParticipants([]);
+          setCameraEnabled(true);
+          setStage("join");
+          setJoinStatus(message);
+        },
       });
       sessionRef.current = session;
+      setCameraEnabled(true);
       setStage("call");
       if (role === "host") session.startHost(room);
       else session.join(room);
@@ -87,7 +99,23 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
     sessionRef.current?.destroy();
     sessionRef.current = null;
     setParticipants([]);
+    setCameraEnabled(true);
     setStage("join");
+  };
+
+  const toggleCamera = () => {
+    const tracks = sessionRef.current?.stream.getVideoTracks() ?? [];
+    if (tracks.length === 0) {
+      setCallStatus("No camera track is available.");
+      return;
+    }
+
+    const nextEnabled = !cameraEnabled;
+    tracks.forEach((track) => {
+      track.enabled = nextEnabled;
+    });
+    sessionRef.current?.setCameraEnabled(nextEnabled);
+    setCameraEnabled(nextEnabled);
   };
 
   useEffect(
@@ -106,6 +134,8 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
     callStatus,
     setCallStatus,
     participants,
+    cameraEnabled,
+    toggleCamera,
     isHost: Boolean(sessionRef.current?.isHost),
     connected: participants.some((participant) => !participant.local && participant.stream),
     broadcastPhoto: (photo) => sessionRef.current?.broadcastPhoto(photo),

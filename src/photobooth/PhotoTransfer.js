@@ -17,6 +17,9 @@ export class PhotoTransfer {
       type: "photo-start",
       id: photo.id,
       frame: photo.frame,
+      captureId: photo.captureId,
+      revision: photo.revision,
+      preview: photo.preview === true,
       total,
     });
     for (let index = 0; index < total; index += 1) {
@@ -42,6 +45,11 @@ export class PhotoTransfer {
       this.transfers.set(key, {
         id: message.id,
         frame: message.frame,
+        captureId: typeof message.captureId === "string" ? message.captureId : message.id,
+        revision: Number.isInteger(message.revision) && message.revision >= 0
+          ? message.revision
+          : 0,
+        preview: message.preview === true,
         chunks: new Array(message.total),
         received: 0,
       });
@@ -68,6 +76,9 @@ export class PhotoTransfer {
     const photo = {
       id: transfer.id,
       frame: transfer.frame,
+      captureId: transfer.captureId,
+      revision: transfer.revision,
+      preview: transfer.preview,
       dataUrl: transfer.chunks.join(""),
     };
     this.onPhoto(photo);

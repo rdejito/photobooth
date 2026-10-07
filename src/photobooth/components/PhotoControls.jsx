@@ -1,11 +1,10 @@
 import ActionButton from "./ActionButton.jsx";
 import CameraIcon from "./CameraIcon.jsx";
-import FramePicker from "./FramePicker.jsx";
 
 export default function PhotoControls({
-  frame,
-  setFrame,
   isHost,
+  cameraEnabled,
+  toggleCamera,
   canCapture,
   takePhoto,
   leaveRoom,
@@ -14,8 +13,15 @@ export default function PhotoControls({
 }) {
   return (
     <div className="room-controls-panel">
-      <FramePicker frame={frame} setFrame={setFrame} />
       <div className="room-actions-bar">
+        <ActionButton
+          onClick={toggleCamera}
+          variant="secondary"
+          ariaPressed={!cameraEnabled}
+        >
+          <CameraIcon className="capture-icon" />
+          {cameraEnabled ? "Turn camera off" : "Turn camera on"}
+        </ActionButton>
         <ActionButton
           onClick={takePhoto}
           disabled={!canCapture || !isHost}

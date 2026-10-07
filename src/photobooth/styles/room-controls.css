@@ -1,8 +1,8 @@
 .room-actions-bar {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 9px;
-  margin-top: auto;
 }
 
 .room-action-button {
@@ -49,12 +49,17 @@
 
 .room-controls-panel .room-action-button {
   width: 100%;
-  justify-content: flex-start;
-  padding: 0 13px;
+  justify-content: center;
+  padding: 0 10px;
 }
 
 .room-controls-panel .room-action-primary {
   justify-content: center;
+}
+
+.room-controls-panel .room-action-quiet {
+  border: 1px solid rgba(255, 255, 255, .12);
+  color: rgba(255, 250, 247, .72);
 }
 
 .capture-icon {
@@ -93,16 +98,44 @@
   backdrop-filter: blur(12px);
 }
 
+.photo-result-editor {
+  display: grid;
+  width: min(720px, 100%);
+  justify-items: center;
+  gap: 10px;
+}
+
 .photo-result-canvas {
   display: block;
-  max-width: min(100%, 960px);
-  max-height: calc(100dvh - 150px);
+  max-width: 100%;
+  max-height: min(36dvh, 390px);
   width: auto;
   height: auto;
   margin: 0 auto;
   border: 5px solid #fffaf7;
   border-radius: 13px;
   box-shadow: 0 22px 60px rgba(0, 0, 0, .35);
+}
+
+.photo-result-editor .frame-picker {
+  width: 100%;
+}
+
+.photo-result-editor .frame-options {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.photo-result-editor .frame-option {
+  padding: 7px 5px 6px;
+}
+
+.photo-result-editor .frame-swatch {
+  height: 42px;
+}
+
+.photo-result-editor .frame-mini-print {
+  width: min(64px, 92%);
+  height: 30px;
 }
 
 .photo-result-canvas[hidden] {
@@ -117,9 +150,10 @@
 }
 
 .photo-result-note {
-  margin-top: 0;
+  margin-top: -4px;
   color: rgba(255, 250, 247, .48);
   font-size: 10px;
+  line-height: 1.5;
 }
 
 @media (max-width: 640px) {
@@ -130,6 +164,10 @@
 }
 
 @media (max-width: 380px) {
+  .photo-result-editor .frame-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .photo-result-actions {
     flex-wrap: wrap;
   }

@@ -27,16 +27,17 @@
 .room-workspace {
   display: grid;
   min-height: 0;
-  grid-template-columns: minmax(0, 1fr) 272px;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
 }
 
 .room-controls-panel {
   display: flex;
-  min-height: 0;
-  flex-direction: column;
-  gap: 16px;
-  padding: 16px;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
   border: 1px solid rgba(255, 255, 255, .12);
   border-radius: 18px;
   background: linear-gradient(155deg, rgba(47, 39, 54, .88), rgba(30, 27, 40, .94));

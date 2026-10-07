@@ -25,8 +25,8 @@ export default function HomePage(props) {
             <span>Make a moment.</span>
           </h1>
           <p className="hero-description">
-            Invite your favorite people, pick a frame, and make a photo
-            together. Save every little moment to your snapshots.
+            Invite your favorite people, take a photo together, then choose a
+            frame. Save every little moment to your snapshots.
           </p>
           <div className="hero-points">
             <div className="hero-point">
@@ -40,7 +40,7 @@ export default function HomePage(props) {
               <span className="point-icon">02</span>
               <span>
                 <strong>Take and save photos</strong>
-                <small>Pick a frame and keep a snapshot</small>
+                <small>Choose a frame after each photo</small>
               </span>
             </div>
           </div>

@@ -21,6 +21,7 @@ export default function LivePhotobooth() {
   const { gallery, addPhoto, deletePhoto } = usePhotoGallery();
   const canCapture =
     room.isHost &&
+    room.cameraEnabled &&
     room.participants.length > 1 &&
     room.participants.every((participant) => participant.stream);
   const capture = usePhotoCapture({
@@ -55,6 +56,8 @@ export default function LivePhotobooth() {
     connected,
     participants,
     isHost,
+    cameraEnabled,
+    toggleCamera,
     createRoom,
     joinRoom,
     leaveRoom,
@@ -84,14 +87,19 @@ export default function LivePhotobooth() {
           roomCode={roomInput}
           connected={connected}
           isHost={isHost}
+          cameraEnabled={cameraEnabled}
+          toggleCamera={toggleCamera}
           canCapture={canCapture}
           callStatus={callStatus}
           frame={capture.frame}
           setFrame={capture.setFrame}
           countdown={capture.countdown}
           showPreview={capture.showPreview}
+          canCustomizePreview={capture.canCustomizePreview}
+          photoPending={capture.photoPending}
           photoDataUrl={capture.photoDataUrl}
           takePhoto={capture.takePhoto}
+          savePhoto={capture.savePhoto}
           leaveRoom={leaveCall}
           hidePreview={capture.hidePreview}
           gallery={gallery}

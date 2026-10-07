@@ -8,7 +8,7 @@ import {
 
 export function renderClassic(canvas, context, participants) {
   const pad = 58;
-  const gap = 10;
+  const gap = 24;
   const railWidth = 28;
   const headerHeight = 82;
   const footerHeight = 34;
@@ -34,13 +34,17 @@ export function renderClassic(canvas, context, participants) {
   context.font = "bold 27px Georgia";
   context.fillText("The photobooth crew", canvas.width / 2, 59);
 
-  drawPortraitStrip(context, participants, pad, headerHeight, PORTRAIT_WIDTH, PHOTO_HEIGHT, gap, 12);
-  context.strokeStyle = "#fffdf8";
-  context.lineWidth = 5;
-  participants.forEach((_, index) => {
-    const x = pad + index * (PORTRAIT_WIDTH + gap);
-    context.strokeRect(x - 2, headerHeight - 2, PORTRAIT_WIDTH + 4, PHOTO_HEIGHT + 4);
-  });
+  drawPortraitStrip(
+    context,
+    participants,
+    pad,
+    headerHeight,
+    PORTRAIT_WIDTH,
+    PHOTO_HEIGHT,
+    gap,
+    12,
+    { borderColor: "#fffdf8", borderWidth: 8 },
+  );
   context.fillStyle = "#8c5360";
   context.font = "italic 14px Georgia";
   context.fillText(

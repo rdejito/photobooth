@@ -76,13 +76,14 @@
   }
 
   .room-workspace {
-    grid-template-columns: minmax(0, 1fr) 174px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
     gap: 8px;
   }
 
   .room-controls-panel {
-    gap: 10px;
-    padding: 9px;
+    gap: 8px;
+    padding: 8px;
     border-radius: 13px;
   }
 
@@ -120,8 +121,8 @@
   }
 
   .room-controls-panel .room-action-button {
-    min-height: 36px;
-    padding: 0 8px;
+    min-height: 40px;
+    padding: 0 5px;
     font-size: 9px;
   }
 
@@ -135,16 +136,6 @@
 
   .video-group[data-participant-count="2"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .video-group[data-participant-count="3"] {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: repeat(2, minmax(0, 1fr));
-  }
-
-  .video-group[data-participant-count="3"] .participant-card:nth-child(3) {
-    grid-column: 1 / -1;
-    justify-self: center;
   }
 
   .video-group[data-participant-count="4"] {

@@ -13,14 +13,11 @@ export function useCameraTileSizing(groupRef, participantCount) {
     if (!group || !participantCount) return undefined;
 
     const sizeTiles = () => {
-      const phone = matchMedia("(max-width: 640px)").matches;
       const columns = participantCount === 1
         ? 1
         : participantCount === 2
           ? 2
-          : participantCount === 3
-            ? phone ? 2 : 3
-            : 2;
+          : 2;
       const rows = Math.ceil(participantCount / columns);
       const styles = getComputedStyle(group);
       const gapX = parseFloat(styles.columnGap) || 0;

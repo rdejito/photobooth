@@ -12,11 +12,14 @@ it with remote guests, use a publicly reachable HTTPS deployment.
 1. One person selects **Create a room** and shares the displayed room code.
 2. Up to three guests open the same website, enter that code, and select
    **Join with code**.
-3. When everyone's camera is ready, the room creator chooses a frame and takes
-   the photo. Guests see the countdown and captured photo.
-4. Download the photo or find it in **Photos**. The gallery is stored in that
-   browser's local storage; it is not shared between guests or synced to a
-   server.
+3. Use **Turn camera off** or **Turn camera on** in the booth controls whenever
+   you want to pause or resume your video.
+4. When everyone's camera is ready, the room creator takes the photo. Choose a
+   frame in the preview, then select **Save and share photo** to send it to
+   guests and add it to **Photos**.
+5. Download the finished photo or find it in **Photos**. The gallery is stored
+   in that browser's local storage; it is not shared between guests or synced
+   to a server.
 
 Available frames: Classic, Arcade, Polaroid, Film Strip, and None.
 
@@ -54,6 +57,9 @@ localhost is allowed for local development.
   backend is required; video streams are sent directly between browsers.
 - The app does not configure a TURN relay. Some restrictive networks may prevent
   browsers from connecting.
+- If joining cannot complete, the app returns to the room form with a diagnostic
+  message. Confirm the host is still in the booth and try another network if
+  WebRTC connections are blocked.
 - For remote guests, deploy the site to a publicly reachable HTTPS host. A local
   development server is only reachable by devices on the same network unless you
   use a secure tunnel.

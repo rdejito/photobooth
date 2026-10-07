@@ -12,7 +12,7 @@ export function renderFilm(canvas, context, participants) {
   const stripWidth = 34;
   const pad = 9;
   const footerHeight = 28;
-  const gap = 7;
+  const gap = 20;
   const photosWidth = getStripWidth(participants.length, pad, gap);
   canvas.width = photosWidth + stripWidth * 2;
   canvas.height = PHOTO_HEIGHT + pad * 2 + footerHeight;
@@ -51,6 +51,7 @@ export function renderFilm(canvas, context, participants) {
     PHOTO_HEIGHT,
     gap,
     3,
+    { borderColor: "#f5f0e6", borderWidth: 6 },
   );
   context.fillStyle = "#e3c997";
   context.font = "bold 10px 'Courier New'";
@@ -60,14 +61,4 @@ export function renderFilm(canvas, context, participants) {
     canvas.width / 2,
     canvas.height - 9,
   );
-  context.strokeStyle = "#f5f0e6";
-  context.lineWidth = 2;
-  participants.forEach((_, index) => {
-    context.strokeRect(
-      stripWidth + pad + index * (PORTRAIT_WIDTH + gap),
-      pad,
-      PORTRAIT_WIDTH,
-      PHOTO_HEIGHT,
-    );
-  });
 }

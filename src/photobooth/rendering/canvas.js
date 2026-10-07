@@ -69,21 +69,36 @@ export function drawPortraitStrip(
   tileHeight = PHOTO_HEIGHT,
   gap = 10,
   radius = 10,
+  { borderColor, borderWidth = 0 } = {},
 ) {
   participants.forEach(({ video }, index) => {
-    const videoWidth = video.videoWidth || tileWidth;
-    const videoHeight = video.videoHeight || tileHeight;
-    const scale = Math.max(tileWidth / videoWidth, tileHeight / videoHeight);
-    const sourceWidth = tileWidth / scale;
-    const sourceHeight = tileHeight / scale;
+    const videoWidth = video.videoWidth || video.naturalWidth || video.width || tileWidth;
+    const videoHeight = video.videoHeight || video.naturalHeight || video.height || tileHeight;
+    const photoWidth = tileWidth - borderWidth * 2;
+    const photoHeight = tileHeight - borderWidth * 2;
+    const scale = Math.max(photoWidth / videoWidth, photoHeight / videoHeight);
+    const sourceWidth = photoWidth / scale;
+    const sourceHeight = photoHeight / scale;
     const sourceX = (videoWidth - sourceWidth) / 2;
     const sourceY = (videoHeight - sourceHeight) / 2;
     const tileX = x + index * (tileWidth + gap);
 
     context.save();
+    if (borderColor && borderWidth > 0) {
+      drawRoundRectPath(context, tileX, y, tileWidth, tileHeight, radius);
+      context.fillStyle = borderColor;
+      context.fill();
+    }
     context.translate(tileX + tileWidth, y);
     context.scale(-1, 1);
-    drawRoundRectPath(context, 0, 0, tileWidth, tileHeight, radius);
+    drawRoundRectPath(
+      context,
+      borderWidth,
+      borderWidth,
+      photoWidth,
+      photoHeight,
+      Math.max(0, radius - borderWidth),
+    );
     context.clip();
     context.drawImage(
       video,
@@ -91,10 +106,10 @@ export function drawPortraitStrip(
       sourceY,
       sourceWidth,
       sourceHeight,
-      0,
-      0,
-      tileWidth,
-      tileHeight,
+      borderWidth,
+      borderWidth,
+      photoWidth,
+      photoHeight,
     );
     context.restore();
   });

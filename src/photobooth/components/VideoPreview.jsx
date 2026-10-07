@@ -11,6 +11,7 @@ export default function VideoPreview({
   stream,
   label,
   muted = false,
+  cameraEnabled = true,
 }) {
   const elementRef = useRef(null);
   const [aspectRatio, setAspectRatio] = useState(() => getStreamAspectRatio(stream));
@@ -47,11 +48,20 @@ export default function VideoPreview({
         muted={muted}
         onLoadedMetadata={updateAspectRatio}
         onResize={updateAspectRatio}
-        className="participant-video"
+        className={`participant-video${cameraEnabled ? "" : " is-camera-off"}`}
       />
-      {!stream && (
-        <div className="participant-placeholder" aria-hidden="true">
-          <span>{label.slice(0, 1)}</span>
+      {(!stream || !cameraEnabled) && (
+        <div
+          className={`participant-placeholder${cameraEnabled ? "" : " is-camera-off"}`}
+          role="status"
+          aria-label={`${label}'s camera is ${cameraEnabled ? "connecting" : "off"}`}
+        >
+          <span className="participant-placeholder-avatar" aria-hidden="true">
+            {label.slice(0, 1).toUpperCase()}
+          </span>
+          <span className="participant-placeholder-message">
+            {cameraEnabled ? "Connecting camera…" : "Camera off"}
+          </span>
         </div>
       )}
       <div className="participant-label">
