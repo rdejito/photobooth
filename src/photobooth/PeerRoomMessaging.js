@@ -56,6 +56,10 @@ function handleRoomMessage(session, connection, message) {
     }
     return;
   }
+  if (message.type === "leave" && session.isHost) {
+    session.removeMember(connection.peer);
+    return;
+  }
   if (message.type === "roster" && !session.isHost) {
     session.receiveRoster(message.peerIds || []);
     return;
@@ -119,6 +123,7 @@ export function receiveRoster(session, peerIds) {
   departed.forEach((memberId) => {
     session.calls.get(memberId)?.close();
     session.removeCall(memberId);
+    session.cameraStates.delete(memberId);
   });
   session.publishParticipants();
   session.connectMembers();

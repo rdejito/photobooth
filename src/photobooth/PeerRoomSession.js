@@ -180,6 +180,7 @@ export class PeerRoomSession {
     if (peerId === this.peerId || !this.members.includes(peerId)) return;
     this.members = this.members.filter((id) => id !== peerId);
     this.connections.delete(peerId);
+    this.cameraStates.delete(peerId);
     this.calls.get(peerId)?.close();
     this.removeCall(peerId);
     if (this.isHost) {
@@ -219,6 +220,9 @@ export class PeerRoomSession {
       for (const connection of this.connections.values()) {
         if (connection.open) connection.send({ type: "room-closed" });
       }
+    } else {
+      const hostConnection = this.connections.get(this.roomHostId);
+      if (hostConnection?.open) hostConnection.send({ type: "leave" });
     }
     for (const call of this.calls.values()) call.close();
     for (const connection of this.connections.values()) connection.close();
