@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import GalleryPanel from "./GalleryPanel.jsx";
 import PhotoControls from "./PhotoControls.jsx";
 import PhotoPreview from "./PhotoPreview.jsx";
+import FramePicker from "./FramePicker.jsx";
 import VideoPreview from "./VideoPreview.jsx";
 import CameraIcon from "./CameraIcon.jsx";
 import { useCameraTileSizing } from "../hooks/useCameraTileSizing.js";
@@ -145,6 +146,11 @@ export default function VideoCallPanel({
           galleryCount={gallery.length}
           toggleGallery={() => setShowGallery((visible) => !visible)}
         />
+        {canCustomizePreview && !showPreview && (
+          <div className="mt-4">
+            <FramePicker frame={frame} setFrame={setFrame} />
+          </div>
+        )}
       </div>
       <PhotoPreview
         canvasRef={canvasRef}
