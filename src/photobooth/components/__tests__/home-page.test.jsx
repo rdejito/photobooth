@@ -15,8 +15,12 @@ describe("MUI home controls", () => {
       />,
     );
 
-    expect(screen.getByRole("heading", { name: /get together/i })).toBeInTheDocument();
+    expect(screen.getByRole("navigation")).toHaveClass("MuiBox-root");
+    expect(screen.getByRole("heading", { name: /get together/i })).toHaveClass("MuiTypography-root");
+    expect(screen.getByText(/your online photobooth/i)).toBeInTheDocument();
+    expect(screen.getByText(/share a room code to connect/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /create a room/i })).toBeInTheDocument();
+    expect(screen.getByText(/photos are saved in this browser/i)).toBeInTheDocument();
   });
 
   it("uses MUI form controls with accessible names and room status", () => {

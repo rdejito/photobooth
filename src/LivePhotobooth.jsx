@@ -1,11 +1,11 @@
 import { useRef, useState } from "react";
+import Box from "@mui/material/Box";
 import FlashOverlay from "./photobooth/components/FlashOverlay.jsx";
 import HomePage from "./photobooth/components/HomePage.jsx";
 import VideoCallPanel from "./photobooth/components/VideoCallPanel.jsx";
 import { usePhotoCapture } from "./photobooth/hooks/usePhotoCapture.js";
 import { usePhotoGallery } from "./photobooth/hooks/usePhotoGallery.js";
 import { usePeerRoom } from "./photobooth/hooks/usePeerRoom.js";
-import "./photobooth/home.css";
 import "./photobooth/room.css";
 
 export default function LivePhotobooth() {
@@ -69,7 +69,24 @@ export default function LivePhotobooth() {
   };
 
   return (
-    <main className={stage === "join" ? undefined : "call-page"}>
+    <Box
+      component="main"
+      sx={
+        stage === "join"
+          ? undefined
+          : {
+              display: "flex",
+              minHeight: "100vh",
+              flexDirection: "column",
+              alignItems: "center",
+              px: 2,
+              pb: 7.5,
+              color: "#ffffff",
+              background: "linear-gradient(135deg, #2b1055, #7597de)",
+              fontFamily: '"Courier New", monospace',
+            }
+      }
+    >
       {stage === "join" ? (
         <HomePage
           roomInput={roomInput}
@@ -109,6 +126,6 @@ export default function LivePhotobooth() {
         />
       )}
       <FlashOverlay visible={capture.showFlash} />
-    </main>
+    </Box>
   );
 }
