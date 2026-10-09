@@ -460,9 +460,9 @@ export default function HomePage(props) {
       </Box>
 
       <Box component="footer" sx={homeStyles.footer}>
-        <span>Little Moments</span>
-        <Box component="span" sx={{ color: "#df987f" }}>·</Box>
         <span>Photos are saved in this browser</span>
+        <Box component="span" sx={{ color: "#df987f" }}>·</Box>
+        <span>© 2026 Little Moments. All rights reserved.</span>
       </Box>
     </Box>
   );
