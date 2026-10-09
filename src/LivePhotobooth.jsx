@@ -75,15 +75,28 @@ export default function LivePhotobooth() {
         stage === "join"
           ? undefined
           : {
+              position: "relative",
+              width: "100%",
+              height: "100vh",
+              minHeight: 0,
               display: "flex",
-              minHeight: "100vh",
               flexDirection: "column",
-              alignItems: "center",
-              px: 2,
-              pb: 7.5,
-              color: "#ffffff",
-              background: "linear-gradient(135deg, #2b1055, #7597de)",
-              fontFamily: '"Courier New", monospace',
+              alignItems: "stretch",
+              padding: "0 clamp(12px, 2vw, 28px) 10px",
+              overflow: "hidden",
+              color: "#fffaf7",
+              background:
+                "radial-gradient(ellipse at 80% 20%, rgba(102,57,77,0.24), transparent 38%), radial-gradient(ellipse at 12% 85%, rgba(95,67,116,0.16), transparent 36%), #171423",
+              fontFamily: '"Avenir Next", Avenir, "Segoe UI", sans-serif',
+              "@supports (height: 100dvh)": { height: "100dvh" },
+              "@media (max-width: 640px)": {
+                paddingRight: 12,
+                paddingLeft: 12,
+              },
+              "@media (max-width: 380px)": {
+                paddingRight: 8,
+                paddingLeft: 8,
+              },
             }
       }
     >
