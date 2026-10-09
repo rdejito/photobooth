@@ -135,6 +135,24 @@ describe("MUI booth controls", () => {
     }
   });
 
+  it("gives the photo preview dialog an accessible name", () => {
+    render(
+      <PhotoPreview
+        canvasRef={{ current: null }}
+        imageData="data:image/png;base64,iVBORw0KGgo="
+        visible
+        canCustomize={false}
+        photoPending={false}
+        frame="classic"
+        setFrame={() => {}}
+        savePhoto={() => {}}
+        hidePreview={() => {}}
+      />,
+    );
+
+    expect(screen.getByRole("dialog", { name: "Latest group photo" })).toBeInTheDocument();
+  });
+
   it("closes snapshots with its close control and keeps room controls available", async () => {
     render(<GalleryHarness />);
     fireEvent.click(screen.getByRole("button", { name: /^photos$/i }));

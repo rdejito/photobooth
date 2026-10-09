@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 import Typography from "@mui/material/Typography";
 import ActionButton from "./ActionButton.jsx";
 import FramePicker from "./FramePicker.jsx";
@@ -49,7 +50,6 @@ export default function PhotoPreview({
       <Dialog
         open={visible}
         onClose={hidePreview}
-        aria-label="Latest group photo"
         maxWidth={false}
         scroll="paper"
         sx={{
@@ -71,6 +71,20 @@ export default function PhotoPreview({
           },
         }}
       >
+        <DialogTitle
+          sx={{
+            position: "absolute",
+            width: "1px",
+            height: "1px",
+            m: "-1px",
+            p: 0,
+            overflow: "hidden",
+            clip: "rect(0, 0, 0, 0)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Latest group photo
+        </DialogTitle>
         <DialogContent sx={{ display: "grid", justifyItems: "center", p: 0, overflow: "visible" }}>
           <Box sx={previewEditorStyles}>
             <Box
