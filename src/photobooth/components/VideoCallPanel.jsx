@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
 import Typography from "@mui/material/Typography";
 import GalleryPanel from "./GalleryPanel.jsx";
 import PhotoControls from "./PhotoControls.jsx";
@@ -483,18 +484,36 @@ export default function VideoCallPanel({
         savePhoto={savePhoto}
         hidePreview={hidePreview}
       />
-      {showGallery && (
-        <div className="snapshots-backdrop" onClick={() => setShowGallery(false)}>
-          <div className="snapshots-dialog" onClick={(event) => event.stopPropagation()}>
-            <GalleryPanel
-              gallery={gallery}
-              deletePhoto={deletePhoto}
-              downloadPhoto={downloadPhoto}
-              onClose={() => setShowGallery(false)}
-            />
-          </div>
-        </div>
-      )}
+      <Dialog
+        open={showGallery}
+        onClose={() => setShowGallery(false)}
+        aria-labelledby="snapshots-title"
+        maxWidth={false}
+        scroll="paper"
+        sx={{
+          "& .MuiBackdrop-root": {
+            backgroundColor: "rgba(16,14,23,0.9)",
+            backdropFilter: "blur(10px)",
+          },
+          "& .MuiDialog-paper": {
+            width: "min(920px, calc(100% - 28px))",
+            maxHeight: "calc(100% - 28px)",
+            m: 1.75,
+            overflow: "auto",
+            border: "1px solid rgba(255,255,255,0.12)",
+            borderRadius: "16px",
+            backgroundColor: "rgba(30,27,40,0.98)",
+            color: "#fffaf7",
+          },
+        }}
+      >
+        <GalleryPanel
+          gallery={gallery}
+          deletePhoto={deletePhoto}
+          downloadPhoto={downloadPhoto}
+          onClose={() => setShowGallery(false)}
+        />
+      </Dialog>
     </Box>
   );
 }

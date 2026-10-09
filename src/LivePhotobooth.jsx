@@ -6,7 +6,6 @@ import VideoCallPanel from "./photobooth/components/VideoCallPanel.jsx";
 import { usePhotoCapture } from "./photobooth/hooks/usePhotoCapture.js";
 import { usePhotoGallery } from "./photobooth/hooks/usePhotoGallery.js";
 import { usePeerRoom } from "./photobooth/hooks/usePeerRoom.js";
-import "./photobooth/room.css";
 
 export default function LivePhotobooth() {
   const [roomInput, setRoomInput] = useState("");

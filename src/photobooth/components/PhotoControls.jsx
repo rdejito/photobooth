@@ -22,6 +22,7 @@ const panelStyles = {
     "&:focus-visible": { outline: "2px solid #f4c66d", outlineOffset: 3 },
     "&:disabled": { cursor: "not-allowed", opacity: 0.55 },
   },
+  "& .capture-icon": { display: "block", width: 17, height: 14, flex: "0 0 auto" },
   "@media (min-width: 641px) and (max-width: 1024px)": { gap: 1.25, p: "9px 11px" },
   "@media (min-width: 1600px)": { gap: 1.75, p: "12px 16px" },
   "@media (max-height: 720px) and (min-width: 641px)": {
