@@ -1,8 +1,8 @@
 # Little Moments - Live Photobooth
 
-A browser-based group photobooth built with React, Vite, and WebRTC via
-[PeerJS](https://peerjs.com/). Create a room, invite up to three guests, choose a
-frame, and capture a group photo.
+A browser-based group photobooth built with React, Vite, Flowbite React, and
+Tailwind CSS, powered by WebRTC via [PeerJS](https://peerjs.com/). Create a
+room, invite up to three guests, choose a frame, and capture a group photo.
 
 ## For users
 
@@ -28,6 +28,7 @@ Available frames: Classic, Arcade, Polaroid, Film Strip, and None.
 ### Requirements
 
 - Node.js and npm
+- Tailwind CSS and Flowbite React are included in the project dependencies
 
 ### Run locally
 
@@ -39,6 +40,17 @@ npm run dev
 Open the URL printed by Vite, usually `http://localhost:5173`. The development
 server listens on the local network, so other devices on the same Wi-Fi can open
 it using your computer's local IP address.
+
+### Styling stack
+
+This app uses:
+
+- React + Vite for the app shell and build pipeline
+- Tailwind CSS for utility styling and spacing system
+- Flowbite React for standard interface patterns like cards, buttons, labels,
+  and form controls
+- Custom photobooth styling for camera-stage visuals, photo frames, and generated
+  layouts that need bespoke rendering
 
 ### Build and preview
 
