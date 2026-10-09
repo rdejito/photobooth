@@ -1,9 +1,30 @@
-import { Button } from "flowbite-react";
+import Button from "@mui/material/Button";
 
-const variantClasses = {
-  primary: "bg-primary-700 text-white hover:bg-primary-800 focus:ring-primary-300",
-  secondary: "bg-white text-gray-900 border border-gray-200 hover:bg-gray-50 focus:ring-primary-200",
-  quiet: "bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-200",
+const variantStyles = {
+  primary: {
+    variant: "contained",
+    sx: {
+      color: "common.white",
+      backgroundColor: "primary.main",
+      "&:hover": { backgroundColor: "primary.dark" },
+    },
+  },
+  secondary: {
+    variant: "outlined",
+    sx: {
+      color: "text.primary",
+      borderColor: "#e5e7eb",
+      backgroundColor: "#ffffff",
+      "&:hover": { borderColor: "#d1d5db", backgroundColor: "#f9fafb" },
+    },
+  },
+  quiet: {
+    variant: "text",
+    sx: {
+      color: "#374151",
+      "&:hover": { backgroundColor: "#f3f4f6" },
+    },
+  },
 };
 
 export default function ActionButton({
@@ -13,13 +34,25 @@ export default function ActionButton({
   variant = "primary",
   ariaPressed,
 }) {
+  const styles = variantStyles[variant] ?? variantStyles.primary;
+
   return (
     <Button
       type="button"
+      variant={styles.variant}
       onClick={onClick}
       disabled={disabled}
       aria-pressed={ariaPressed}
-      className={`${variantClasses[variant] ?? variantClasses.primary} min-w-fit px-4 py-2.5 text-sm font-medium shadow-sm transition-all`}
+      sx={{
+        minWidth: "fit-content",
+        px: 2,
+        py: 1.25,
+        fontSize: "0.875rem",
+        fontWeight: 500,
+        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+        transition: "all 150ms ease",
+        ...styles.sx,
+      }}
     >
       {children}
     </Button>
