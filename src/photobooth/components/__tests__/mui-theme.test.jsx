@@ -12,4 +12,17 @@ describe("MUI theme", () => {
     expect(muiTheme.components.MuiButton.defaultProps.disableElevation).toBe(true);
     expect(muiTheme.components.MuiButton.styleOverrides.root.textTransform).toBe("none");
   });
+
+  it("keeps global page defaults in the MUI CssBaseline", () => {
+    const baseline = muiTheme.components.MuiCssBaseline.styleOverrides;
+
+    expect(baseline.body).toMatchObject({
+      fontSynthesis: "none",
+      textRendering: "optimizeLegibility",
+      WebkitFontSmoothing: "antialiased",
+      MozOsxFontSmoothing: "grayscale",
+    });
+    expect(baseline["button, input, textarea, select"]).toEqual({ font: "inherit" });
+    expect(baseline["#root"]).toMatchObject({ minHeight: "100vh" });
+  });
 });

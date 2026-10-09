@@ -44,7 +44,13 @@ const muiTheme = createTheme({
           color: "#111827",
           background:
             "radial-gradient(circle at top, rgba(251, 191, 36, 0.18), transparent 30%), linear-gradient(135deg, #fffaf6 0%, #fff7ed 100%)",
+          fontSynthesis: "none",
+          textRendering: "optimizeLegibility",
+          WebkitFontSmoothing: "antialiased",
+          MozOsxFontSmoothing: "grayscale",
         },
+        "button, input, textarea, select": { font: "inherit" },
+        "#root": { minHeight: "100vh" },
       },
     },
   },
