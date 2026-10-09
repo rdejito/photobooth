@@ -1,8 +1,8 @@
 # Little Moments - Live Photobooth
 
-A browser-based group photobooth built with React, Vite, and WebRTC via
-[PeerJS](https://peerjs.com/). Create a room, invite up to three guests, choose a
-frame, and capture a group photo.
+A browser-based group photobooth built with React, Vite, and MUI, powered by
+WebRTC via [PeerJS](https://peerjs.com/). Create a room, invite up to three
+guests, choose a frame, and capture a group photo.
 
 ## For users
 
@@ -28,6 +28,7 @@ Available frames: Classic, Arcade, Polaroid, Film Strip, and None.
 ### Requirements
 
 - Node.js and npm
+- MUI and Emotion are installed from the project dependencies
 
 ### Run locally
 
@@ -39,6 +40,18 @@ npm run dev
 Open the URL printed by Vite, usually `http://localhost:5173`. The development
 server listens on the local network, so other devices on the same Wi-Fi can open
 it using your computer's local IP address.
+
+### Styling stack
+
+This app uses:
+
+- React + Vite for the app shell and build pipeline
+- MUI for interface components, layout primitives, theme defaults, and
+  responsive styling
+- Emotion as MUI's styling engine; component-specific styles use MUI's `sx`
+  prop and the shared theme in `src/photobooth/muiTheme.js`
+- No authored CSS stylesheets are required; specialized camera and photo layouts
+  are implemented with responsive MUI styles
 
 ### Build and preview
 

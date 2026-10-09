@@ -1,12 +1,11 @@
 import { useRef, useState } from "react";
+import Box from "@mui/material/Box";
 import FlashOverlay from "./photobooth/components/FlashOverlay.jsx";
 import HomePage from "./photobooth/components/HomePage.jsx";
 import VideoCallPanel from "./photobooth/components/VideoCallPanel.jsx";
 import { usePhotoCapture } from "./photobooth/hooks/usePhotoCapture.js";
 import { usePhotoGallery } from "./photobooth/hooks/usePhotoGallery.js";
 import { usePeerRoom } from "./photobooth/hooks/usePeerRoom.js";
-import "./photobooth/home.css";
-import "./photobooth/room.css";
 
 export default function LivePhotobooth() {
   const [roomInput, setRoomInput] = useState("");
@@ -69,7 +68,37 @@ export default function LivePhotobooth() {
   };
 
   return (
-    <main className={stage === "join" ? undefined : "call-page"}>
+    <Box
+      component="main"
+      sx={
+        stage === "join"
+          ? undefined
+          : {
+              position: "relative",
+              width: "100%",
+              height: "100vh",
+              minHeight: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "stretch",
+              padding: "0 clamp(12px, 2vw, 28px) 10px",
+              overflow: "hidden",
+              color: "#fffaf7",
+              background:
+                "radial-gradient(ellipse at 80% 20%, rgba(102,57,77,0.24), transparent 38%), radial-gradient(ellipse at 12% 85%, rgba(95,67,116,0.16), transparent 36%), #171423",
+              fontFamily: '"Avenir Next", Avenir, "Segoe UI", sans-serif',
+              "@supports (height: 100dvh)": { height: "100dvh" },
+              "@media (max-width: 640px)": {
+                paddingRight: 12,
+                paddingLeft: 12,
+              },
+              "@media (max-width: 380px)": {
+                paddingRight: 8,
+                paddingLeft: 8,
+              },
+            }
+      }
+    >
       {stage === "join" ? (
         <HomePage
           roomInput={roomInput}
@@ -109,6 +138,6 @@ export default function LivePhotobooth() {
         />
       )}
       <FlashOverlay visible={capture.showFlash} />
-    </main>
+    </Box>
   );
 }

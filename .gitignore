@@ -2,7 +2,8 @@ node_modules/
 dist/
 .vite/
 coverage/
-reports/
+plans/
+.worktrees/
 
 # Local environment configuration
 .env*
