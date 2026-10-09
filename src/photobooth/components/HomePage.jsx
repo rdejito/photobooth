@@ -74,9 +74,9 @@ export default function HomePage(props) {
       </section>
 
       <footer className="home-footer">
-        <span>Little Moments</span>
-        <span className="footer-heart">·</span>
         <span>Photos are saved in this browser</span>
+        <span className="footer-heart">·</span>
+        <span>© 2026 Little Moments. All rights reserved.</span>
       </footer>
     </div>
   );
