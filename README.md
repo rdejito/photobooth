@@ -87,80 +87,83 @@ screen is composed bottom-up from there. Long MUI style objects live in
 tokens live in `src/theme/tokens.js`.
 
 ```
-index.html                     Vite entry document (mounts #root)
-vite.config.js                 Vite + React plugin, dev server host, test config
-vitest.config.js               Vitest config (jsdom, setup file)
-scripts/run-vitest.js          Wrapper used by `npm test`
-scripts/check-file-length.js   Enforces the 250-line-per-file cap (`npm run check:size`)
-public/icon.svg                Favicon
-src/
-  main.jsx                     Boots React, applies ThemeProvider + CssBaseline
-  App.jsx                      Root: wires the hooks, renders Home or Booth page,
-                               hosts the global flash overlay
-  setupTests.js                Testing Library / jest-dom setup
-  lib/
-    constants.js               FRAMES, FRAME_GROUPS and LAYOUTS lists, burst length
-    utils.js                   Room-code to peer-id mapping, label helpers,
-                               gallery entry factory
-    download.js                Shared image-download helper + filename policy
-  theme/
-    muiTheme.js                Shared MUI theme
-    tokens.js                  Shared COLORS / SURFACES / FONTS tokens
-    styles/                    One style module per component or screen:
-                               homeTemplate, boothTemplate, cameraStage,
-                               photoPreview, galleryPanel, joinRoomPanel, ...
-  services/
-    PhotoTransfer.js           Chunked, size-limited photo transfer over a
-                               PeerJS data connection
-    PeerRoomMessaging.js       Room protocol: join/leave, roster, camera state,
-                               countdown, photo relay, room-full/closed handling
-    PeerRoomSession.js         Owns the Peer, the mesh of calls and data
-                               connections, and participant state
-  hooks/
-    usePeerRoom.js             Camera access + room lifecycle (create/join/leave,
-                               toggle camera, connection status)
-    usePhotoCapture.js         Capture session shell: countdown/flash/preview
-                               state and channel glue between the capture modules
-    usePhotoGallery.js         Persists the local photo gallery in localStorage
-    useCameraTileSizing.js     Sizes camera tiles to fit the grid
-    capture/
-      captureSequence.js       Four-shot countdown/snapshot controller + timers
-      hostComposer.js          Host-side: compose, re-compose, save and broadcast
-      peerInbox.js             Guest-side: apply incoming photo/countdown messages
-      photoComposer.js         Canvas render + frame-font loading helpers
-      previewPublisher.js      Photo message building/publishing (revision ids)
-  rendering/
-    PhotoRenderer.js           Top-level render: picks a frame renderer and
-                               applies the single or burst-shot layout
-    canvas.js                  Canvas primitives and group-shot composition
-    frameFonts.js              Self-hosted @fontsource imports + loadFrameFonts
-    frameThumbnail.js          Real no-photo frame thumbnails (cached)
-    frames/                    One renderer per frame: classic, arcade, polaroid,
-                               film, none, steampunk, cyberpunk, darkVictorian,
-                               pop/* (pop/blush/noir/mint), scrapbook/*
-      units.js                 Design-unit sizes, slot geometry, scaling helper
-      units/                   designUnits, primitives, slotPainting modules
-      pop/                     Pop-family renderers: palettes, ornaments, copy
-      scrapbook/               Scrapbook renderers: ornaments, paper
-      shared.js                Labels, fonts, cached backgrounds, slot photos
-  components/
-    atoms/                     Smallest units: ActionButton, CameraIcon,
-                               FlashOverlay, StatusDot, BrandMark
-    molecules/                 Single-purpose combinations of atoms: JoinRoomPanel,
-                               PickerOptionButton, RoomCodeCard, ConnectionPill,
-                               CountdownOverlay, WaitingBanner, SiteNav,
-                               GalleryCard, GalleryDialog
-    organisms/                 Sections composed of atoms/molecules: VideoPreview,
-                               PhotoControls, FramePicker, LayoutPicker,
-                               PhotoPreview, GalleryPanel, CameraStage,
-                               BoothHeader, BoothIntro, HomeHeroCopy, PhotoArtwork
-  templates/
-    HomeTemplate.jsx           Landing layout: nav + hero copy + artwork + join card
-    BoothTemplate.jsx          In-room layout: header, intro, stage, controls,
-                               customization, preview and gallery dialogs
-  pages/
-    HomePage.jsx               Landing page (thin shell over HomeTemplate)
-    BoothPage.jsx              In-room photobooth screen (shell over BoothTemplate)
+photobooth/
+├── index.html                     Vite entry document (mounts #root)
+├── vite.config.js                 Vite + React plugin, dev server host, test config
+├── vitest.config.js               Vitest config (jsdom, setup file)
+├── scripts/
+│   ├── run-vitest.js              Wrapper used by `npm test`
+│   └── check-file-length.js       Enforces the 250-line-per-file cap (`npm run check:size`)
+├── public/
+│   └── icon.svg                   Favicon
+└── src/
+    ├── main.jsx                   Boots React, applies ThemeProvider + CssBaseline
+    ├── App.jsx                    Root: wires the hooks, renders Home or Booth page,
+    │                              hosts the global flash overlay
+    ├── setupTests.js              Testing Library / jest-dom setup
+    ├── lib/
+    │   ├── constants.js           FRAMES, FRAME_GROUPS and LAYOUTS lists, burst length
+    │   ├── utils.js               Room-code to peer-id mapping, label helpers,
+    │   │                          gallery entry factory
+    │   └── download.js            Shared image-download helper + filename policy
+    ├── theme/
+    │   ├── muiTheme.js            Shared MUI theme
+    │   ├── tokens.js              Shared COLORS / SURFACES / FONTS tokens
+    │   └── styles/                One style module per component or screen:
+    │                              homeTemplate, boothTemplate, cameraStage,
+    │                              photoPreview, galleryPanel, joinRoomPanel, ...
+    ├── services/
+    │   ├── PhotoTransfer.js       Chunked, size-limited photo transfer over a
+    │   │                          PeerJS data connection
+    │   ├── PeerRoomMessaging.js   Room protocol: join/leave, roster, camera state,
+    │   │                          countdown, photo relay, room-full/closed handling
+    │   └── PeerRoomSession.js     Owns the Peer, the mesh of calls and data
+    │                              connections, and participant state
+    ├── hooks/
+    │   ├── usePeerRoom.js         Camera access + room lifecycle (create/join/leave,
+    │   │                          toggle camera, connection status)
+    │   ├── usePhotoCapture.js     Capture session shell: countdown/flash/preview
+    │   │                          state and channel glue between the capture modules
+    │   ├── usePhotoGallery.js     Persists the local photo gallery in localStorage
+    │   ├── useCameraTileSizing.js Sizes camera tiles to fit the grid
+    │   └── capture/
+    │       ├── captureSequence.js Four-shot countdown/snapshot controller + timers
+    │       ├── hostComposer.js    Host-side: compose, re-compose, save and broadcast
+    │       ├── peerInbox.js       Guest-side: apply incoming photo/countdown messages
+    │       ├── photoComposer.js   Canvas render + frame-font loading helpers
+    │       └── previewPublisher.js Photo message building/publishing (revision ids)
+    ├── rendering/
+    │   ├── PhotoRenderer.js       Top-level render: picks a frame renderer and
+    │   │                          applies the single or burst-shot layout
+    │   ├── canvas.js              Canvas primitives and group-shot composition
+    │   ├── frameFonts.js          Self-hosted @fontsource imports + loadFrameFonts
+    │   ├── frameThumbnail.js      Real no-photo frame thumbnails (cached)
+    │   └── frames/                One renderer per frame: classic, arcade, polaroid,
+    │       │                      film, none, steampunk, cyberpunk, darkVictorian,
+    │       │                      pop/* (pop/blush/noir/mint), scrapbook/*
+    │       ├── units.js           Design-unit sizes, slot geometry, scaling helper
+    │       ├── units/             designUnits, primitives, slotPainting modules
+    │       ├── pop/               Pop-family renderers: palettes, ornaments, copy
+    │       ├── scrapbook/         Scrapbook renderers: ornaments, paper
+    │       └── shared.js          Labels, fonts, cached backgrounds, slot photos
+    ├── components/
+    │   ├── atoms/                 Smallest units: ActionButton, CameraIcon,
+    │   │                          FlashOverlay, StatusDot, BrandMark
+    │   ├── molecules/             Single-purpose combinations of atoms: JoinRoomPanel,
+    │   │                          PickerOptionButton, RoomCodeCard, ConnectionPill,
+    │   │                          CountdownOverlay, WaitingBanner, SiteNav,
+    │   │                          GalleryCard, GalleryDialog
+    │   └── organisms/             Sections composed of atoms/molecules: VideoPreview,
+    │                              PhotoControls, FramePicker, LayoutPicker,
+    │                              PhotoPreview, GalleryPanel, CameraStage,
+    │                              BoothHeader, BoothIntro, HomeHeroCopy, PhotoArtwork
+    ├── templates/
+    │   ├── HomeTemplate.jsx       Landing layout: nav + hero copy + artwork + join card
+    │   └── BoothTemplate.jsx      In-room layout: header, intro, stage, controls,
+    │                              customization, preview and gallery dialogs
+    └── pages/
+        ├── HomePage.jsx           Landing page (thin shell over HomeTemplate)
+        └── BoothPage.jsx          In-room photobooth screen (shell over BoothTemplate)
 ```
 
 ### Frames
