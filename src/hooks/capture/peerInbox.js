@@ -19,8 +19,9 @@ export function applyIncomingCountdown(value, meta, session) {
 
 /**
  * Applies an incoming photo revision. Later revisions of the same capture win;
- * a saved photo always beats any preview of the same revision. Guests cannot
- * customize, so pics only arrive as screenshots of the host's choices.
+ * once a capture's saved photo has arrived it is final, so no late preview or
+ * duplicate save can replace it. Guests cannot customize, so photos only arrive
+ * as screenshots of the host's choices.
  */
 export function applyIncomingPhoto(photo, session) {
   session.setCountdown(null);
@@ -28,12 +29,13 @@ export function applyIncomingPhoto(photo, session) {
   const captureId = photo.captureId || photo.id;
   const revision = Number.isInteger(photo.revision) ? photo.revision : 0;
   const received = session.receivedPhotoRef.current;
-  if (
-    received?.captureId === captureId &&
-    (revision < received.revision ||
-      (!photo.preview && received.saved && revision <= received.revision))
-  ) {
-    return;
+  if (received?.captureId === captureId) {
+    // The saved photo ends the capture: nothing may overwrite it afterwards.
+    if (received.saved) return;
+    // Previews only ever advance. A duplicate or out-of-order revision must
+    // not replace a newer frame/layout the guest is already showing. A save,
+    // however, always beats every preview that came before it.
+    if (photo.preview && revision <= received.revision) return;
   }
   if (!photo.preview) {
     session.addPhoto(photo.dataUrl, photo.frame, photo.layout || session.layout);
@@ -41,8 +43,8 @@ export function applyIncomingPhoto(photo, session) {
   if (typeof photo.eventName === "string") session.updateEventName(photo.eventName);
   session.receivedPhotoRef.current = { captureId, revision, saved: !photo.preview };
   session.setPhotoDataUrl(photo.dataUrl);
-  session.setSelectedFrame(photo.frame);
-  session.setSelectedLayout(photo.layout || "single-horizontal");
+  session.setSelectedFrame(photo.frame ?? session.frame);
+  session.setSelectedLayout(photo.layout || session.layout);
   session.setCanCustomizePreview(false);
   session.clearSources();
   session.setPhotoPending(photo.preview === true);
