@@ -104,6 +104,14 @@ export function usePhotoCapture({
     broadcastCountdown(null);
   };
 
+  // Guests receive the host's composed image, not raw camera sources, so
+  // nothing local can be re-composed from. Clearing the refs keeps a guest's
+  // preview strictly read-only and ready for the next capture.
+  const clearSources = () => {
+    sourceParticipantsRef.current = [];
+    sourceBurstParticipantsRef.current = [];
+  };
+
   // The mutable bundle hostComposer/peerInbox operate on. Rebuilt each render
   // so helpers always read fresh state.
   const session = {
@@ -135,6 +143,7 @@ export function usePhotoCapture({
     receivedPhotoRef,
     triggerFlash,
     updateEventName,
+    clearSources,
   };
 
   sequenceRef.current.bind({
@@ -203,8 +212,7 @@ export function usePhotoCapture({
     setCanCustomizePreview(false);
     setPhotoPending(false);
     setSelectedLayout("single-horizontal");
-    sourceParticipantsRef.current = [];
-    sourceBurstParticipantsRef.current = [];
+    clearSources();
     photoSavedRef.current = false;
     captureIdRef.current = null;
   };

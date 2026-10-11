@@ -35,9 +35,46 @@ function CaptureHarness() {
       <button type="button" onClick={capture.takePhoto}>take-photo</button>
       <button type="button" onClick={() => capture.setFrame("polaroid")}>change-frame</button>
       <button type="button" onClick={() => capture.setLayout("grid-2x2")}>change-layout</button>
+      <button
+        type="button"
+        onClick={() =>
+          capture.receivePhoto({
+            id: "cap-0",
+            captureId: "cap",
+            revision: 0,
+            preview: true,
+            dataUrl: "data:image/png;base64,host-preview",
+            frame: "polaroid",
+            layout: "grid-2x2",
+            eventName: "Emma",
+          })
+        }
+      >
+        receive-preview
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          capture.receivePhoto({
+            id: "cap-1",
+            captureId: "cap",
+            revision: 1,
+            preview: false,
+            dataUrl: "data:image/png;base64,host-saved",
+            frame: "polaroid",
+            layout: "grid-2x2",
+            eventName: "Emma",
+          })
+        }
+      >
+        receive-save
+      </button>
       <span data-testid="photo-data">{capture.photoDataUrl}</span>
       <span data-testid="customize">{String(capture.canCustomizePreview)}</span>
       <span data-testid="pending">{String(capture.photoPending)}</span>
+      <span data-testid="show-preview">{String(capture.showPreview)}</span>
+      <span data-testid="frame">{capture.frame}</span>
+      <span data-testid="layout">{capture.layout}</span>
       <span data-testid="shot">{capture.shotNumber}</span>
       <span data-testid="flash">{String(capture.showFlash)}</span>
     </>
@@ -164,5 +201,35 @@ describe("usePhotoCapture", () => {
     expect(screen.getByTestId("pending")).toHaveTextContent("false");
     expect(screen.getByTestId("customize")).toHaveTextContent("false");
     expect(screen.getByTestId("shot")).toHaveTextContent("0");
+  });
+
+  it("shows a guest the host's live preview, then the saved photo, without letting them customize", async () => {
+    render(<CaptureHarness />);
+
+    // A live preview from the host opens the dialog with the host's choices.
+    await act(async () => {
+      screen.getByRole("button", { name: "receive-preview" }).click();
+    });
+
+    expect(screen.getByTestId("show-preview")).toHaveTextContent("true");
+    expect(screen.getByTestId("photo-data")).toHaveTextContent(
+      "data:image/png;base64,host-preview",
+    );
+    expect(screen.getByTestId("frame")).toHaveTextContent("polaroid");
+    expect(screen.getByTestId("layout")).toHaveTextContent("grid-2x2");
+    expect(screen.getByTestId("pending")).toHaveTextContent("true");
+    expect(screen.getByTestId("customize")).toHaveTextContent("false");
+
+    // The saved photo replaces the preview; the guest stays preview-only.
+    await act(async () => {
+      screen.getByRole("button", { name: "receive-save" }).click();
+    });
+
+    expect(screen.getByTestId("photo-data")).toHaveTextContent(
+      "data:image/png;base64,host-saved",
+    );
+    expect(screen.getByTestId("pending")).toHaveTextContent("false");
+    expect(screen.getByTestId("customize")).toHaveTextContent("false");
+    expect(renderPhotoMock).not.toHaveBeenCalled();
   });
 });
