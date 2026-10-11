@@ -7,6 +7,7 @@ import GalleryPanel from "./GalleryPanel.jsx";
 import PhotoControls from "./PhotoControls.jsx";
 import PhotoPreview from "./PhotoPreview.jsx";
 import FramePicker from "./FramePicker.jsx";
+import LayoutPicker from "./LayoutPicker.jsx";
 import VideoPreview from "./VideoPreview.jsx";
 import CameraIcon from "./CameraIcon.jsx";
 import { useCameraTileSizing } from "../hooks/useCameraTileSizing.js";
@@ -279,11 +280,17 @@ const roomStyles = {
       justifySelf: "center",
     },
   },
-  countdown: {
+  countdownWrap: {
     position: "absolute",
     zIndex: 2,
     top: "50%",
     left: "50%",
+    display: "grid",
+    justifyItems: "center",
+    gap: 1,
+    transform: "translate(-50%, -50%)",
+  },
+  countdown: {
     display: "grid",
     width: 104,
     height: 104,
@@ -295,8 +302,20 @@ const roomStyles = {
     fontFamily: 'Georgia, "Times New Roman", serif',
     fontSize: 52,
     boxShadow: "0 0 0 9px rgba(255,255,255,0.08)",
-    transform: "translate(-50%, -50%)",
     backdropFilter: "blur(5px)",
+  },
+  shotLabel: {
+    px: 1.25,
+    py: "3px",
+    border: "1px solid rgba(255,255,255,0.16)",
+    borderRadius: "99px",
+    backgroundColor: "rgba(22,19,30,0.78)",
+    color: "rgba(255,250,247,0.86)",
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: "0.02em",
+    whiteSpace: "nowrap",
+    backdropFilter: "blur(8px)",
   },
   waiting: {
     position: "absolute",
@@ -344,7 +363,13 @@ export default function VideoCallPanel({
   callStatus,
   frame,
   setFrame,
+  layout = "single-horizontal",
+  setLayout = () => {},
+  eventName = "",
+  setEventName = () => {},
   countdown,
+  shotNumber = 0,
+  totalShots = 4,
   showPreview,
   canCustomizePreview,
   photoPending,
@@ -403,7 +428,7 @@ export default function VideoCallPanel({
           </Typography>
           <Typography component="p" sx={roomStyles.description}>
             {connected
-              ? "Get everyone ready and capture the whole crew. Choose a frame after the photo."
+              ? "Get everyone ready, then take four shots — each one counts down from three before the flash."
               : "Share the code. Up to three guests can join, and they will appear here as they arrive."}
           </Typography>
         </Box>
@@ -445,8 +470,15 @@ export default function VideoCallPanel({
             ))}
           </Box>
           {countdown !== null && (
-            <Box component="div" sx={roomStyles.countdown} aria-live="assertive">
-              {countdown}
+            <Box sx={roomStyles.countdownWrap} aria-live="assertive">
+              <Box component="div" sx={roomStyles.countdown}>
+                {countdown}
+              </Box>
+              {shotNumber > 0 && (
+                <Box component="span" sx={roomStyles.shotLabel}>
+                  Shot {shotNumber} of {totalShots}
+                </Box>
+              )}
             </Box>
           )}
           {!connected && (
@@ -468,8 +500,9 @@ export default function VideoCallPanel({
           toggleGallery={() => setShowGallery((visible) => !visible)}
         />
         {canCustomizePreview && !showPreview && (
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 2, display: "grid", gap: 2 }}>
             <FramePicker frame={frame} setFrame={setFrame} />
+            <LayoutPicker layout={layout} setLayout={setLayout} />
           </Box>
         )}
       </Box>
@@ -481,6 +514,10 @@ export default function VideoCallPanel({
         photoPending={photoPending}
         frame={frame}
         setFrame={setFrame}
+        layout={layout}
+        setLayout={setLayout}
+        eventName={eventName}
+        setEventName={setEventName}
         savePhoto={savePhoto}
         hidePreview={hidePreview}
       />

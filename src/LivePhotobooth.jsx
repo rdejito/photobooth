@@ -15,7 +15,8 @@ export default function LivePhotobooth() {
   const photoCallbacksRef = useRef({});
   const room = usePeerRoom({
     onPhoto: (photo) => photoCallbacksRef.current.receivePhoto?.(photo),
-    onCountdown: (value) => photoCallbacksRef.current.receiveCountdown?.(value),
+    onCountdown: (value, meta) =>
+      photoCallbacksRef.current.receiveCountdown?.(value, meta),
   });
   const { gallery, addPhoto, deletePhoto } = usePhotoGallery();
   const canCapture =
@@ -40,8 +41,8 @@ export default function LivePhotobooth() {
     expectedParticipantCount: room.participants.length,
     canCapture,
     broadcastPhoto: (photo) => photoCallbacksRef.current.broadcastPhoto?.(photo),
-    broadcastCountdown: (value) =>
-      photoCallbacksRef.current.broadcastCountdown?.(value),
+    broadcastCountdown: (value, meta) =>
+      photoCallbacksRef.current.broadcastCountdown?.(value, meta),
   });
   photoCallbacksRef.current.receivePhoto = capture.receivePhoto;
   photoCallbacksRef.current.receiveCountdown = capture.receiveCountdown;
@@ -122,7 +123,13 @@ export default function LivePhotobooth() {
           callStatus={callStatus}
           frame={capture.frame}
           setFrame={capture.setFrame}
+          layout={capture.layout}
+          setLayout={capture.setLayout}
+          eventName={capture.eventName}
+          setEventName={capture.setEventName}
           countdown={capture.countdown}
+          shotNumber={capture.shotNumber}
+          totalShots={capture.totalShots}
           showPreview={capture.showPreview}
           canCustomizePreview={capture.canCustomizePreview}
           photoPending={capture.photoPending}

@@ -3,7 +3,7 @@ import Button from "@mui/material/Button";
 import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import { getFrameLabel } from "../utils.js";
+import { getFrameLabel, getLayoutLabel } from "../utils.js";
 
 const galleryButtonStyles = {
   minHeight: 30,
@@ -151,6 +151,9 @@ export default function GalleryPanel({ gallery, deletePhoto, downloadPhoto, onCl
               <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, px: 0.25, py: 1.125 }}>
                 <Typography component="strong" sx={{ color: "rgba(255,250,247,0.86)", fontSize: 10, fontWeight: 600 }}>
                   {getFrameLabel(photo.frame)}
+                </Typography>
+                <Typography component="small" sx={{ color: "rgba(255,250,247,0.48)", fontSize: 9 }}>
+                  {getLayoutLabel(photo.layout || "single-horizontal")}
                 </Typography>
                 <Typography component="time" sx={{ color: "rgba(255,250,247,0.48)", fontSize: 9 }}>
                   {photo.takenAt}

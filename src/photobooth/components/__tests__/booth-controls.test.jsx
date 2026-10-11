@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { fireEvent, render, screen, waitForElementToBeRemoved } from "@testing-library/react";
 import FramePicker from "../FramePicker.jsx";
+import LayoutPicker from "../LayoutPicker.jsx";
 import PhotoPreview from "../PhotoPreview.jsx";
 import VideoCallPanel from "../VideoCallPanel.jsx";
 import VideoPreview from "../VideoPreview.jsx";
@@ -18,6 +19,8 @@ const defaultProps = {
   callStatus: "ready",
   frame: "classic",
   setFrame: () => {},
+  layout: "single-horizontal",
+  setLayout: () => {},
   countdown: null,
   showPreview: false,
   canCustomizePreview: true,
@@ -102,6 +105,18 @@ describe("MUI booth controls", () => {
     expect(setFrame).toHaveBeenCalledWith("polaroid");
   });
 
+  it("selects a layout through an accessible MUI button", () => {
+    const setLayout = vi.fn();
+    render(<LayoutPicker layout="single-horizontal" setLayout={setLayout} />);
+
+    expect(screen.getByRole("button", { name: /horizontal/i })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    fireEvent.click(screen.getByRole("button", { name: /2×2 grid/i }));
+    expect(setLayout).toHaveBeenCalledWith("grid-2x2");
+  });
+
   it("preserves photo preview download names and the take-another action", () => {
     const hidePreview = vi.fn();
     const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function () {
@@ -133,6 +148,34 @@ describe("MUI booth controls", () => {
       clickSpy.mockRestore();
       nowSpy.mockRestore();
     }
+  });
+
+  it("shows the composed burst as one preview instead of single-shot selectors", () => {
+    render(
+      <PhotoPreview
+        canvasRef={{ current: null }}
+        imageData="data:image/png;base64,composite"
+        visible
+        canCustomize
+        photoPending={false}
+        frame="classic"
+        setFrame={() => {}}
+        layout="single-horizontal"
+        setLayout={() => {}}
+        burstShots={Array(4).fill("data:image/png;base64,shot")}
+        selectedBurstIndex={3}
+        selectBurstShot={() => {}}
+        savePhoto={() => {}}
+        hidePreview={() => {}}
+      />,
+    );
+
+    expect(screen.getByRole("img", { name: /latest group photobooth picture/i })).toHaveAttribute(
+      "src",
+      "data:image/png;base64,composite",
+    );
+    expect(screen.queryByText(/choose a burst shot/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: /burst shot/i })).not.toBeInTheDocument();
   });
 
   it("gives the photo preview dialog an accessible name", () => {

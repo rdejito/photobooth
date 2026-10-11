@@ -1,3 +1,5 @@
+import { PHOTO_SHOT_COUNT } from "./constants.js";
+
 const MAX_PARTICIPANTS = 4;
 
 export function attachRoomConnection(session, connection) {
@@ -95,11 +97,37 @@ function handleRoomMessage(session, connection, message) {
     return;
   }
   if (message.type === "countdown" && !session.isHost) {
-    const valid = message.value === null ||
-      message.value === "📸" ||
-      (Number.isInteger(message.value) && message.value >= 0 && message.value <= 3);
-    if (valid) session.onCountdown(message.value);
+    const parsed = parseCountdownMessage(message);
+    if (parsed) session.onCountdown(parsed.value, parsed.meta);
   }
+}
+
+/**
+ * Validates a countdown message and normalizes it for the UI layer.
+ *
+ * The countdown "clear" messages are sent without a `shot`, and PeerJS's
+ * binary serializer turns sent `undefined` values into `null` on the wire, so
+ * both must be treated as "shot not given" — otherwise guests would drop the
+ * clearing message and keep a stale countdown on screen.
+ */
+export function parseCountdownMessage(message) {
+  if (!message || message.type !== "countdown") return null;
+  const validValue = message.value === null ||
+    message.value === "📸" ||
+    (Number.isInteger(message.value) && message.value >= 0 && message.value <= 3);
+  const shotAbsent = message.shot === undefined || message.shot === null;
+  const shotValid = Number.isInteger(message.shot) &&
+    message.shot >= 0 &&
+    message.shot <= PHOTO_SHOT_COUNT;
+  const totalValid = message.total === undefined ||
+    message.total === null ||
+    message.total === PHOTO_SHOT_COUNT;
+  if (!validValue || (!shotAbsent && !shotValid) || !totalValid) return null;
+  if (shotAbsent) return { value: message.value };
+  return {
+    value: message.value,
+    meta: { shot: message.shot, total: message.total ?? PHOTO_SHOT_COUNT },
+  };
 }
 
 export function receiveRoster(session, peerIds) {
@@ -137,11 +165,17 @@ export function broadcastRoster(session) {
   for (const connection of session.connections.values()) sendRoster(session, connection);
 }
 
-export function broadcastCountdown(session, value) {
+export function broadcastCountdown(session, value, meta = {}) {
   if (!session.isHost) return;
   for (const connection of session.connections.values()) {
     if (session.members.includes(connection.peer) && connection.open) {
-      connection.send({ type: "countdown", value });
+      const message = {
+        type: "countdown",
+        value,
+        total: meta.total ?? PHOTO_SHOT_COUNT,
+      };
+      if (Number.isInteger(meta.shot)) message.shot = meta.shot;
+      connection.send(message);
     }
   }
 }

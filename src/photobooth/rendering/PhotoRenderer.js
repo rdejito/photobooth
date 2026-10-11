@@ -3,17 +3,134 @@ import { renderClassic } from "./frames/classic.js";
 import { renderFilm } from "./frames/film.js";
 import { renderNone } from "./frames/none.js";
 import { renderPolaroid } from "./frames/polaroid.js";
+import { renderPop, renderBlush, renderNoir, renderMint } from "./frames/pop.js";
+import { renderScrapbook } from "./frames/scrapbook.js";
+import { renderDarkVictorian } from "./frames/darkVictorian.js";
+import { renderSteampunk } from "./frames/steampunk.js";
+import { renderCyberpunk } from "./frames/cyberpunk.js";
+import { composeGroupShot } from "./canvas.js";
+import { FRAME_IDS, PHOTO_SHOT_COUNT } from "../constants.js";
 
-const FRAME_RENDERERS = {
+/**
+ * Frame registry: frame id -> renderer. Each renderer receives
+ * (canvas, context, participants, options) and sets its own canvas size. Every
+ * frame is authored in fixed design units (see units.js) and owns its four
+ * photo slots per layout, so the burst pipeline hands it one composed group
+ * shot per slot and it is drawn exactly once.
+ */
+export const FRAME_RENDERERS = {
   classic: renderClassic,
   arcade: renderArcade,
   polaroid: renderPolaroid,
   film: renderFilm,
   none: renderNone,
+  pop: renderPop,
+  blush: renderBlush,
+  noir: renderNoir,
+  mint: renderMint,
+  scrapbook: renderScrapbook,
+  darkVictorian: renderDarkVictorian,
+  steampunk: renderSteampunk,
+  cyberpunk: renderCyberpunk,
 };
 
-export function renderPhoto({ canvas, context, participants, frame }) {
-  const renderer = FRAME_RENDERERS[frame] || renderNone;
-  renderer(canvas, context, participants);
+export function getFrameRenderer(frameKey) {
+  return FRAME_RENDERERS[frameKey] || renderNone;
+}
+
+function drawLayout({ context, canvas, baseCanvas, layout }) {
+  const defaultInset = 28;
+  const width = canvas.width;
+  const height = canvas.height;
+
+  context.clearRect(0, 0, width, height);
+  context.fillStyle = "#171423";
+  context.fillRect(0, 0, width, height);
+
+  if (layout === "single-vertical") {
+    const innerWidth = Math.min(width - defaultInset * 2, width * 0.72);
+    const innerHeight = height - defaultInset * 2;
+    context.drawImage(
+      baseCanvas,
+      (width - innerWidth) / 2,
+      (height - innerHeight) / 2,
+      innerWidth,
+      innerHeight,
+    );
+    return;
+  }
+
+  if (layout === "grid-2x2") {
+    const gap = 16;
+    const tileWidth = (width - gap * 3) / 2;
+    const tileHeight = (height - gap * 3) / 2;
+    const positions = [
+      [defaultInset, defaultInset],
+      [defaultInset + tileWidth + gap, defaultInset],
+      [defaultInset, defaultInset + tileHeight + gap],
+      [defaultInset + tileWidth + gap, defaultInset + tileHeight + gap],
+    ];
+
+    positions.forEach(([x, y]) => {
+      context.drawImage(baseCanvas, x, y, tileWidth, tileHeight);
+    });
+    return;
+  }
+
+  const horizontalInset = 32;
+  const horizontalHeight = Math.min(height - horizontalInset * 2, height * 0.8);
+  context.drawImage(
+    baseCanvas,
+    horizontalInset,
+    (height - horizontalHeight) / 2,
+    width - horizontalInset * 2,
+    horizontalHeight,
+  );
+}
+
+const JPEG_FRAMES = new Set(FRAME_IDS);
+
+function encodeCanvas(canvas, frameKey) {
+  // The frames ship large, dense artwork; JPEG keeps them inside
+  // PhotoTransfer's 4 MB limit and the localStorage gallery budget.
+  if (JPEG_FRAMES.has(frameKey)) return canvas.toDataURL("image/jpeg", 0.88);
   return canvas.toDataURL("image/png");
+}
+
+export function renderPhoto({
+  canvas,
+  context,
+  participants = [],
+  burstShots,
+  frame,
+  layout = "single-horizontal",
+  frameOptions = {},
+}) {
+  const renderer = getFrameRenderer(frame);
+  const options = { ...frameOptions, layout };
+
+  if (burstShots) {
+    if (burstShots.length !== PHOTO_SHOT_COUNT) {
+      throw new Error("Exactly four burst shots are required to compose a photo.");
+    }
+    // Every frame owns its four cells, so each cell receives one composed group
+    // shot of every participant from that moment (the frame is drawn once).
+    const groupShots = burstShots.map((shotParticipants) =>
+      composeGroupShot(shotParticipants),
+    );
+    renderer(canvas, context, [], { ...options, groupShots });
+    return encodeCanvas(canvas, frame);
+  }
+
+  const baseCanvas = document.createElement("canvas");
+  const baseContext = baseCanvas.getContext("2d");
+  if (!baseContext) {
+    throw new Error("Canvas rendering context is unavailable.");
+  }
+
+  renderer(baseCanvas, baseContext, participants, options);
+  canvas.width = baseCanvas.width;
+  canvas.height = baseCanvas.height;
+  drawLayout({ context, canvas, baseCanvas, layout });
+  return encodeCanvas(canvas, frame);
 }

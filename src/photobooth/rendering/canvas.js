@@ -1,7 +1,3 @@
-export const PHOTO_WIDTH = 640;
-export const PHOTO_HEIGHT = 480;
-export const PORTRAIT_WIDTH = 320;
-
 export function drawMirroredVideo(context, video, x, y, width, height, radius = 0) {
   context.save();
   context.translate(x + width, y);
@@ -14,105 +10,73 @@ export function drawMirroredVideo(context, video, x, y, width, height, radius = 
   context.restore();
 }
 
-export function getStripWidth(count, padding, gap, tileWidth = PORTRAIT_WIDTH) {
-  return padding * 2 + count * tileWidth + Math.max(0, count - 1) * gap;
+export const GROUP_SHOT_WIDTH = 640;
+export const GROUP_SHOT_HEIGHT = 480;
+
+/**
+ * Chooses a tile grid for a group shot. Cells are filled row-major so a
+ * trailing empty cell only ever appears at the end of the last row.
+ */
+function groupGridShape(count) {
+  if (count <= 1) return { cols: 1, rows: 1 };
+  if (count === 2) return { cols: 2, rows: 1 };
+  if (count <= 4) return { cols: 2, rows: 2 };
+  if (count <= 6) return { cols: 3, rows: 2 };
+  return { cols: 3, rows: Math.ceil(count / 3) };
 }
 
-export function drawFrameSideRail(context, x, y, width, height, theme) {
-  context.fillStyle = theme.background;
-  context.fillRect(x, y, width, height);
-  context.fillStyle = theme.accent;
-  context.fillRect(x + 2, y, 2, height);
-  context.fillRect(x + width - 4, y, 2, height);
+/**
+ * Composes every participant of a single burst moment into one group-shot
+ * canvas: all of them tiled side by side (mirrored like the live preview) so a
+ * layout cell shows the whole group instead of a single person. The canvas is
+ * authored at a 4:3 ratio to match the themed frame slots it is drawn into.
+ */
+export function composeGroupShot(participants, width = GROUP_SHOT_WIDTH, height = GROUP_SHOT_HEIGHT) {
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Canvas rendering context is unavailable.");
 
-  for (let markY = y + 16; markY < y + height - 8; markY += 34) {
-    if (theme.pattern === "pixels") {
-      context.fillRect(x + 7, markY, width - 14, 4);
-      context.fillStyle = theme.detail || theme.accent;
-      context.fillRect(x + 11, markY + 6, width - 22, 3);
-      context.fillStyle = theme.accent;
-    } else if (theme.pattern === "medallions") {
-      context.beginPath();
-      context.arc(x + width / 2, markY + 4, 3, 0, Math.PI * 2);
-      context.fill();
-      context.fillStyle = theme.detail || theme.accent;
-      context.fillRect(x + width / 2 - 1, markY + 11, 2, 7);
-      context.fillStyle = theme.accent;
-    } else {
-      context.beginPath();
-      context.moveTo(x + width / 2, markY);
-      context.lineTo(x + width / 2 + 4, markY + 4);
-      context.lineTo(x + width / 2, markY + 8);
-      context.lineTo(x + width / 2 - 4, markY + 4);
-      context.closePath();
-      context.fill();
-      context.fillStyle = theme.detail || theme.accent;
-      context.fillRect(x + 3, markY + 3, 2, 2);
-      context.fillRect(x + width - 5, markY + 3, 2, 2);
-      context.fillStyle = theme.accent;
-    }
-  }
-}
+  context.fillStyle = "#171423";
+  context.fillRect(0, 0, width, height);
 
-export function drawOuterFrameRails(context, canvasWidth, y, height, width, theme) {
-  const inset = 12;
-  drawFrameSideRail(context, inset, y, width, height, theme);
-  drawFrameSideRail(context, canvasWidth - inset - width, y, width, height, theme);
-}
+  const members = (participants || []).filter((participant) => participant?.video);
+  if (!members.length) return canvas;
 
-export function drawPortraitStrip(
-  context,
-  participants,
-  x,
-  y,
-  tileWidth = PORTRAIT_WIDTH,
-  tileHeight = PHOTO_HEIGHT,
-  gap = 10,
-  radius = 10,
-  { borderColor, borderWidth = 0 } = {},
-) {
-  participants.forEach(({ video }, index) => {
+  const { cols, rows } = groupGridShape(members.length);
+  const tileWidth = width / cols;
+  const tileHeight = height / rows;
+
+  members.forEach(({ video }, index) => {
+    const tileX = (index % cols) * tileWidth;
+    const tileY = Math.floor(index / cols) * tileHeight;
     const videoWidth = video.videoWidth || video.naturalWidth || video.width || tileWidth;
     const videoHeight = video.videoHeight || video.naturalHeight || video.height || tileHeight;
-    const photoWidth = tileWidth - borderWidth * 2;
-    const photoHeight = tileHeight - borderWidth * 2;
-    const scale = Math.max(photoWidth / videoWidth, photoHeight / videoHeight);
-    const sourceWidth = photoWidth / scale;
-    const sourceHeight = photoHeight / scale;
+    const scale = Math.max(tileWidth / videoWidth, tileHeight / videoHeight);
+    const sourceWidth = tileWidth / scale;
+    const sourceHeight = tileHeight / scale;
     const sourceX = (videoWidth - sourceWidth) / 2;
     const sourceY = (videoHeight - sourceHeight) / 2;
-    const tileX = x + index * (tileWidth + gap);
 
     context.save();
-    if (borderColor && borderWidth > 0) {
-      drawRoundRectPath(context, tileX, y, tileWidth, tileHeight, radius);
-      context.fillStyle = borderColor;
-      context.fill();
-    }
-    context.translate(tileX + tileWidth, y);
+    context.translate(tileX + tileWidth, tileY);
     context.scale(-1, 1);
-    drawRoundRectPath(
-      context,
-      borderWidth,
-      borderWidth,
-      photoWidth,
-      photoHeight,
-      Math.max(0, radius - borderWidth),
-    );
-    context.clip();
     context.drawImage(
       video,
       sourceX,
       sourceY,
       sourceWidth,
       sourceHeight,
-      borderWidth,
-      borderWidth,
-      photoWidth,
-      photoHeight,
+      0,
+      0,
+      tileWidth,
+      tileHeight,
     );
     context.restore();
   });
+
+  return canvas;
 }
 
 export function drawRoundRectPath(context, x, y, width, height, radius) {

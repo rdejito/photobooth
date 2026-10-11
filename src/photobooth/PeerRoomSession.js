@@ -207,8 +207,8 @@ export class PeerRoomSession {
     broadcastPhoto(this, photo);
   }
 
-  broadcastCountdown(value) {
-    broadcastCountdown(this, value);
+  broadcastCountdown(value, meta) {
+    broadcastCountdown(this, value, meta);
   }
 
   destroy() {
