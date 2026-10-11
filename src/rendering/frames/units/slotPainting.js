@@ -4,6 +4,7 @@
  * preview, a direct participant snapshot and a pre-composed group shot all
  * share the exact same cover-crop maths.
  */
+import { coverSource } from "../../cropGuide.js";
 import { roundedRectPath } from "./primitives.js";
 
 /** Fills a slot rectangle with its border colour, respecting rounding. */
@@ -43,19 +44,6 @@ function paintCoverImage(context, image, source, target, { borderRadius, borderW
     context.drawImage(image, source.x, source.y, source.width, source.height, x, y, width, height);
   }
   context.restore();
-}
-
-/** Computes the source rectangle that cover-fits an image into a target box. */
-function coverSource(width, height, targetWidth, targetHeight) {
-  const scale = Math.max(targetWidth / width, targetHeight / height);
-  const sourceWidth = targetWidth / scale;
-  const sourceHeight = targetHeight / scale;
-  return {
-    x: (width - sourceWidth) / 2,
-    y: (height - sourceHeight) / 2,
-    width: sourceWidth,
-    height: sourceHeight,
-  };
 }
 
 /** Shrinks a slot by its border width so the photo never covers the border. */
