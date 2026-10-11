@@ -94,6 +94,7 @@ export default function BoothTemplate({
           countdown={countdown}
           shotNumber={shotNumber}
           totalShots={totalShots}
+          layout={layout}
         />
         <PhotoControls
           isHost={isHost}

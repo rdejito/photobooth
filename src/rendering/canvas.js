@@ -1,3 +1,12 @@
+import {
+  GROUP_SHOT_HEIGHT,
+  GROUP_SHOT_WIDTH,
+  groupGridShape,
+  groupTileSourceRect,
+} from "./cropGuide.js";
+
+export { GROUP_SHOT_HEIGHT, GROUP_SHOT_WIDTH };
+
 export function drawMirroredVideo(context, video, x, y, width, height, radius = 0) {
   context.save();
   context.translate(x + width, y);
@@ -8,21 +17,6 @@ export function drawMirroredVideo(context, video, x, y, width, height, radius = 
   }
   context.drawImage(video, 0, 0, width, height);
   context.restore();
-}
-
-export const GROUP_SHOT_WIDTH = 640;
-export const GROUP_SHOT_HEIGHT = 480;
-
-/**
- * Chooses a tile grid for a group shot. Cells are filled row-major so a
- * trailing empty cell only ever appears at the end of the last row.
- */
-function groupGridShape(count) {
-  if (count <= 1) return { cols: 1, rows: 1 };
-  if (count === 2) return { cols: 2, rows: 1 };
-  if (count <= 4) return { cols: 2, rows: 2 };
-  if (count <= 6) return { cols: 3, rows: 2 };
-  return { cols: 3, rows: Math.ceil(count / 3) };
 }
 
 /**
@@ -53,11 +47,12 @@ export function composeGroupShot(participants, width = GROUP_SHOT_WIDTH, height 
     const tileY = Math.floor(index / cols) * tileHeight;
     const videoWidth = video.videoWidth || video.naturalWidth || video.width || tileWidth;
     const videoHeight = video.videoHeight || video.naturalHeight || video.height || tileHeight;
-    const scale = Math.max(tileWidth / videoWidth, tileHeight / videoHeight);
-    const sourceWidth = tileWidth / scale;
-    const sourceHeight = tileHeight / scale;
-    const sourceX = (videoWidth - sourceWidth) / 2;
-    const sourceY = (videoHeight - sourceHeight) / 2;
+    const {
+      x: sourceX,
+      y: sourceY,
+      width: sourceWidth,
+      height: sourceHeight,
+    } = groupTileSourceRect(videoWidth, videoHeight, members.length, width, height);
 
     context.save();
     context.translate(tileX + tileWidth, tileY);
