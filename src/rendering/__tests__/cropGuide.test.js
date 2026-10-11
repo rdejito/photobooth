@@ -5,6 +5,7 @@ import {
   coverSource,
   ensureVisibleRegion,
   groupGridShape,
+  groupTileFrames,
   groupTileSourceRect,
   slotSourceRect,
 } from "../cropGuide.js";
@@ -13,9 +14,38 @@ describe("groupGridShape", () => {
   it("fills row-major across the supported group sizes", () => {
     expect(groupGridShape(1)).toEqual({ cols: 1, rows: 1 });
     expect(groupGridShape(2)).toEqual({ cols: 2, rows: 1 });
+    expect(groupGridShape(3)).toEqual({ cols: 3, rows: 1 });
     expect(groupGridShape(4)).toEqual({ cols: 2, rows: 2 });
     expect(groupGridShape(5)).toEqual({ cols: 3, rows: 2 });
     expect(groupGridShape(7)).toEqual({ cols: 3, rows: 3 });
+  });
+});
+
+describe("groupTileFrames", () => {
+  it("lays a three-person group out as a row of portrait tiles with margins", () => {
+    const frames = groupTileFrames(3);
+
+    expect(frames.map((frame) => frame.x)).toEqual([0, 1 / 3, 2 / 3]);
+    for (const frame of frames) {
+      expect(frame.width).toBeCloseTo(1 / 3, 10);
+      // Shorter than the canvas, so a margin remains above and below.
+      expect(frame.height).toBeLessThan(1);
+      // Each tile is centred vertically in the canvas.
+      expect(frame.y).toBeCloseTo((1 - frame.height) / 2, 10);
+      // 3:4 portrait once the canvas's 4:3 pixel aspect is applied.
+      const pixelRatio =
+        (frame.width * GROUP_SHOT_WIDTH) / (frame.height * GROUP_SHOT_HEIGHT);
+      expect(pixelRatio).toBeCloseTo(3 / 4, 10);
+    }
+  });
+
+  it("keeps the row-major grid for other group sizes", () => {
+    expect(groupTileFrames(4)).toEqual([
+      { x: 0, y: 0, width: 0.5, height: 0.5 },
+      { x: 0.5, y: 0, width: 0.5, height: 0.5 },
+      { x: 0, y: 0.5, width: 0.5, height: 0.5 },
+      { x: 0.5, y: 0.5, width: 0.5, height: 0.5 },
+    ]);
   });
 });
 

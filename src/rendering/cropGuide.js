@@ -16,14 +16,54 @@ export const GROUP_SHOT_HEIGHT = 480;
 
 /**
  * Chooses a tile grid for a group shot. Cells are filled row-major so a
- * trailing empty cell only ever appears at the end of the last row.
+ * trailing empty cell only ever appears at the end of the last row. A group of
+ * three uses a single row of three vertical tiles.
  */
 export function groupGridShape(count) {
   if (count <= 1) return { cols: 1, rows: 1 };
   if (count === 2) return { cols: 2, rows: 1 };
+  if (count === 3) return { cols: 3, rows: 1 };
   if (count <= 4) return { cols: 2, rows: 2 };
   if (count <= 6) return { cols: 3, rows: 2 };
   return { cols: 3, rows: Math.ceil(count / 3) };
+}
+
+/**
+ * The tile rectangle, as fractions of the group canvas, for each participant
+ * slot. Tiles fill the grid `groupGridShape` picks, row-major; a three-person
+ * group is the exception and uses `threeUpFrames`.
+ */
+export function groupTileFrames(count) {
+  if (count === 3) return threeUpFrames();
+
+  const size = Math.max(1, count);
+  const { cols, rows } = groupGridShape(size);
+  const width = 1 / cols;
+  const height = 1 / rows;
+  return Array.from({ length: size }, (_, index) => ({
+    x: (index % cols) * width,
+    y: Math.floor(index / cols) * height,
+    width,
+    height,
+  }));
+}
+
+/** Width:height ratio of each portrait tile in the three-person layout. */
+const THREE_UP_TILE_RATIO = 3 / 4;
+
+/**
+ * Frames for a three-person group: three portrait (3:4) tiles in a row,
+ * centred vertically so each camera keeps more of its width instead of being
+ * stretched into a full-height sliver. The leftover canvas reads as a margin
+ * above and below the tiles.
+ */
+function threeUpFrames() {
+  const width = 1 / 3;
+  // The canvas is 4:3, so a tile one third as wide is `canvasAspect / (3 *
+  // ratio)` of the canvas tall.
+  const height = (GROUP_SHOT_WIDTH / GROUP_SHOT_HEIGHT) / (3 * THREE_UP_TILE_RATIO);
+  const y = (1 - height) / 2;
+  return [0, 1, 2].map((index) => ({ x: index * width, y, width, height }));
 }
 
 /** Computes the source rectangle that cover-fits an image into a target box. */
@@ -51,12 +91,12 @@ export function groupTileSourceRect(
   canvasWidth = GROUP_SHOT_WIDTH,
   canvasHeight = GROUP_SHOT_HEIGHT,
 ) {
-  const { cols, rows } = groupGridShape(Math.max(1, participantCount));
+  const frame = groupTileFrames(Math.max(1, participantCount))[0];
   return coverSource(
     videoWidth,
     videoHeight,
-    canvasWidth / cols,
-    canvasHeight / rows,
+    canvasWidth * frame.width,
+    canvasHeight * frame.height,
   );
 }
 
@@ -88,9 +128,9 @@ export function cameraCropRegion({
   const count = Math.max(1, participantCount || 1);
   const index = Math.min(Math.max(0, participantIndex), count - 1);
 
-  const { cols, rows } = groupGridShape(count);
-  const tileWidth = GROUP_SHOT_WIDTH / cols;
-  const tileHeight = GROUP_SHOT_HEIGHT / rows;
+  const frame = groupTileFrames(count)[index];
+  const tileWidth = frame.width * GROUP_SHOT_WIDTH;
+  const tileHeight = frame.height * GROUP_SHOT_HEIGHT;
 
   // The camera region this tile shows (a centered cover crop of the camera).
   const tile = groupTileSourceRect(width, height, count);
@@ -99,8 +139,8 @@ export function cameraCropRegion({
 
   // The group-canvas region the frame slot keeps (a centered cover crop).
   const slot = slotSourceRect(layout);
-  const tileX = (index % cols) * tileWidth;
-  const tileY = Math.floor(index / cols) * tileHeight;
+  const tileX = frame.x * GROUP_SHOT_WIDTH;
+  const tileY = frame.y * GROUP_SHOT_HEIGHT;
 
   const visibleX0 = Math.max(tileX, slot.x);
   const visibleX1 = Math.min(tileX + tileWidth, slot.x + slot.width);

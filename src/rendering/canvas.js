@@ -1,7 +1,7 @@
 import {
   GROUP_SHOT_HEIGHT,
   GROUP_SHOT_WIDTH,
-  groupGridShape,
+  groupTileFrames,
   groupTileSourceRect,
 } from "./cropGuide.js";
 
@@ -38,13 +38,14 @@ export function composeGroupShot(participants, width = GROUP_SHOT_WIDTH, height 
   const members = (participants || []).filter((participant) => participant?.video);
   if (!members.length) return canvas;
 
-  const { cols, rows } = groupGridShape(members.length);
-  const tileWidth = width / cols;
-  const tileHeight = height / rows;
+  const frames = groupTileFrames(members.length);
 
   members.forEach(({ video }, index) => {
-    const tileX = (index % cols) * tileWidth;
-    const tileY = Math.floor(index / cols) * tileHeight;
+    const frame = frames[index];
+    const tileX = frame.x * width;
+    const tileY = frame.y * height;
+    const tileWidth = frame.width * width;
+    const tileHeight = frame.height * height;
     const videoWidth = video.videoWidth || video.naturalWidth || video.width || tileWidth;
     const videoHeight = video.videoHeight || video.naturalHeight || video.height || tileHeight;
     const {
