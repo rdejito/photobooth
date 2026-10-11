@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node ./scripts/run-vitest.js"
+    "test": "node ./scripts/run-vitest.js",
+    "check:size": "node ./scripts/check-file-length.js"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
