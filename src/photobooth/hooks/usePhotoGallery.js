@@ -23,8 +23,8 @@ export function usePhotoGallery() {
     }
   }, [gallery]);
 
-  const addPhoto = (dataUrl, frame) => {
-    const photo = createGalleryEntry(dataUrl, frame);
+  const addPhoto = (dataUrl, frame, layout = "single-horizontal") => {
+    const photo = createGalleryEntry(dataUrl, frame, layout);
     setGallery((photos) => [photo, ...photos]);
     return photo;
   };

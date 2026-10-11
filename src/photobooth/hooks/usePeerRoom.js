@@ -139,7 +139,8 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
     isHost: Boolean(sessionRef.current?.isHost),
     connected: participants.some((participant) => !participant.local && participant.stream),
     broadcastPhoto: (photo) => sessionRef.current?.broadcastPhoto(photo),
-    broadcastCountdown: (value) => sessionRef.current?.broadcastCountdown(value),
+    broadcastCountdown: (value, meta) =>
+      sessionRef.current?.broadcastCountdown(value, meta),
     createRoom,
     joinRoom,
     leaveRoom,

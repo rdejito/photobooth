@@ -2,9 +2,11 @@ import Box from "@mui/material/Box";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import ActionButton from "./ActionButton.jsx";
 import FramePicker from "./FramePicker.jsx";
+import LayoutPicker from "./LayoutPicker.jsx";
 
 const previewEditorStyles = {
   display: "grid",
@@ -33,6 +35,10 @@ export default function PhotoPreview({
   photoPending,
   frame,
   setFrame,
+  layout = "single-horizontal",
+  setLayout = () => {},
+  eventName = "",
+  setEventName = () => {},
   savePhoto,
   hidePreview,
 }) {
@@ -94,7 +100,43 @@ export default function PhotoPreview({
               sx={previewImageStyles}
             />
             {canCustomize && (
-              <FramePicker compact frame={frame} setFrame={setFrame} />
+              <>
+                <FramePicker compact frame={frame} setFrame={setFrame} />
+                <LayoutPicker compact layout={layout} setLayout={setLayout} />
+                <TextField
+                  type="text"
+                  size="small"
+                  label="Event name (optional)"
+                  placeholder="e.g. Emma's birthday"
+                  value={eventName}
+                  onChange={(event) => setEventName(event.target.value)}
+                  inputProps={{ maxLength: 40 }}
+                  sx={{
+                    width: "min(320px, 100%)",
+                    "& .MuiInputBase-root": {
+                      borderRadius: "11px",
+                      backgroundColor: "rgba(255,255,255,0.05)",
+                      color: "#fffaf7",
+                      fontSize: 12,
+                    },
+                    "& .MuiInputLabel-root": {
+                      color: "rgba(255,250,247,0.6)",
+                      fontSize: 12,
+                    },
+                    "& .MuiInputLabel-root.Mui-focused": { color: "#e9b69a" },
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(255,255,255,0.14)",
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "rgba(233,167,127,0.45)",
+                    },
+                    "& .MuiInputBase-input::placeholder": {
+                      color: "rgba(255,250,247,0.35)",
+                      opacity: 1,
+                    },
+                  }}
+                />
+              </>
             )}
             <Box
               sx={{
@@ -131,9 +173,9 @@ export default function PhotoPreview({
               }}
             >
               {canCustomize
-                ? "Choose a frame, then save your finished photo to the snapshots."
+                ? "Choose the frame and layout, then save your finished photo to the snapshots."
                 : photoPending
-                  ? "The host is choosing a frame. The finished photo will appear in your snapshots."
+                  ? "The host is taking four shots, then choosing the frame and layout. The finished photo will appear in your snapshots."
                   : "Saved to your snapshots"}
             </Typography>
           </Box>
