@@ -66,14 +66,37 @@ function threeUpFrames() {
   return [0, 1, 2].map((index) => ({ x: index * width, y, width, height }));
 }
 
-/** Computes the source rectangle that cover-fits an image into a target box. */
-export function coverSource(width, height, targetWidth, targetHeight) {
+/**
+ * Composition crop focus. Horizontal crops stay centered; when a tall stream
+ * (a phone held upright) is cropped into a wider tile, the vertical crop keeps
+ * the upper part of the frame so heads survive and only the lower body is
+ * trimmed. The same focus feeds both the composition and the live guide, so
+ * they can never disagree.
+ */
+export const GROUP_TILE_FOCUS = { x: 0.5, y: 0.15 };
+
+function clamp01(value) {
+  return Math.min(1, Math.max(0, value));
+}
+
+/**
+ * Computes the source rectangle that cover-fits an image into a target box.
+ * `focus` (0..1) picks where the crop sits on each axis: 0.5 is centered and
+ * the default, so callers that don't care get the original centred crop.
+ */
+export function coverSource(
+  width,
+  height,
+  targetWidth,
+  targetHeight,
+  focus = { x: 0.5, y: 0.5 },
+) {
   const scale = Math.max(targetWidth / width, targetHeight / height);
   const sourceWidth = targetWidth / scale;
   const sourceHeight = targetHeight / scale;
   return {
-    x: (width - sourceWidth) / 2,
-    y: (height - sourceHeight) / 2,
+    x: (width - sourceWidth) * clamp01(focus.x ?? 0.5),
+    y: (height - sourceHeight) * clamp01(focus.y ?? 0.5),
     width: sourceWidth,
     height: sourceHeight,
   };
@@ -82,7 +105,9 @@ export function coverSource(width, height, targetWidth, targetHeight) {
 /**
  * The camera source rectangle `composeGroupShot` cover-crops into one tile for
  * a group of `participantCount` participants. `canvasWidth`/`canvasHeight`
- * mirror the group canvas dimensions so the maths track the composition.
+ * mirror the group canvas dimensions so the maths track the composition. The
+ * crop adapts to each stream's ratio: wide streams crop the sides, tall streams
+ * crop the bottom, and the focus keeps heads framed.
  */
 export function groupTileSourceRect(
   videoWidth,
@@ -97,6 +122,7 @@ export function groupTileSourceRect(
     videoHeight,
     canvasWidth * frame.width,
     canvasHeight * frame.height,
+    GROUP_TILE_FOCUS,
   );
 }
 
@@ -113,8 +139,9 @@ export function slotSourceRect(layout) {
 /**
  * Normalized `{ x, y, width, height }` (0..1) region of the camera frame that
  * survives into the final photo for `participantIndex` of `participantCount`
- * under `layout`. Mirrors the two centered cover-crops of the composition, so a
- * subject centered in this region stays inside the finished photo.
+ * under `layout`. Mirrors the two cover-crops of the composition — including the
+ * adaptive, ratio-aware tile focus — so a subject centered in this region stays
+ * inside the finished photo.
  */
 export function cameraCropRegion({
   videoWidth,
@@ -132,7 +159,7 @@ export function cameraCropRegion({
   const tileWidth = frame.width * GROUP_SHOT_WIDTH;
   const tileHeight = frame.height * GROUP_SHOT_HEIGHT;
 
-  // The camera region this tile shows (a centered cover crop of the camera).
+  // The camera region this tile shows (an adaptive cover crop of the camera).
   const tile = groupTileSourceRect(width, height, count);
   const tileFractionX = tile.width / width;
   const tileFractionY = tile.height / height;
@@ -149,7 +176,7 @@ export function cameraCropRegion({
 
   // Degenerate geometry (no overlap): fall back to the whole tile crop.
   if (visibleX1 <= visibleX0 || visibleY1 <= visibleY0) {
-    return centeredRegion(tileFractionX, tileFractionY);
+    return tileRegion(tile, width, height);
   }
 
   const left = (visibleX0 - tileX) / tileWidth;
@@ -157,23 +184,23 @@ export function cameraCropRegion({
   const top = (visibleY0 - tileY) / tileHeight;
   const bottom = (visibleY1 - tileY) / tileHeight;
 
-  // Both crops are centered, so a sub-rect of the tile maps to the same
-  // normalized position within the displayed camera frame (mirroring included).
+  // Map the surviving sub-rect of the tile back through the (possibly
+  // off-centre) camera crop so the guide tracks the exact composition crop.
   return {
-    x: (1 - tileFractionX) / 2 + left * tileFractionX,
-    y: (1 - tileFractionY) / 2 + top * tileFractionY,
+    x: tile.x / width + left * tileFractionX,
+    y: tile.y / height + top * tileFractionY,
     width: (right - left) * tileFractionX,
     height: (bottom - top) * tileFractionY,
   };
 }
 
-/** A centered region of the camera of the given fractional size. */
-function centeredRegion(fractionX, fractionY) {
+/** The whole camera region a tile shows, normalized to the camera frame. */
+function tileRegion(tile, videoWidth, videoHeight) {
   return {
-    x: (1 - fractionX) / 2,
-    y: (1 - fractionY) / 2,
-    width: fractionX,
-    height: fractionY,
+    x: tile.x / videoWidth,
+    y: tile.y / videoHeight,
+    width: tile.width / videoWidth,
+    height: tile.height / videoHeight,
   };
 }
 

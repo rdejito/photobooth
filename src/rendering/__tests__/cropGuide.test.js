@@ -164,6 +164,36 @@ describe("cameraCropRegion", () => {
     expect(region.x).toBeGreaterThanOrEqual(0);
     expect(region.x + region.width).toBeLessThanOrEqual(1.0000001);
   });
+
+  it("keeps the upper part of a tall camera cropped into a wide tile", () => {
+    const region = cameraCropRegion({
+      videoWidth: 405,
+      videoHeight: 720,
+      participantCount: 4,
+      participantIndex: 0,
+      layout: "single-horizontal",
+    });
+
+    // The head keeps the vertical crop above the tile centre.
+    expect(region.y + region.height / 2).toBeLessThan(0.45);
+    expect(region.x).toBeCloseTo(0);
+    expect(region.width).toBeCloseTo(1);
+    expect(region.y + region.height).toBeLessThanOrEqual(1.0000001);
+  });
+
+  it("keeps the full height of a wide camera in the same mixed group", () => {
+    const region = cameraCropRegion({
+      videoWidth: 1280,
+      videoHeight: 720,
+      participantCount: 4,
+      participantIndex: 1,
+      layout: "single-horizontal",
+    });
+
+    // No vertical crop on the group tile; only the slot's slight trim remains.
+    expect(region.height).toBeGreaterThan(0.9);
+    expect(region.width).toBeCloseTo(0.75, 3);
+  });
 });
 
 describe("ensureVisibleRegion", () => {

@@ -1,5 +1,7 @@
 import { useLayoutEffect } from "react";
+import { computeTileBoxes, stageColumns } from "../lib/cameraTileLayout.js";
 
+/** Reads a tile's camera aspect ratio from its computed `aspect-ratio`. */
 function readAspectRatio(element) {
   const [width, height] = getComputedStyle(element)
     .aspectRatio.split("/")
@@ -7,35 +9,42 @@ function readAspectRatio(element) {
   return width > 0 && height > 0 ? width / height : 4 / 3;
 }
 
+/**
+ * Sizes the live camera tiles to the stage. Mixed-device rooms share one tile
+ * height across the grid so rows line up, while each tile keeps its own camera
+ * ratio (see `computeTileBoxes`), so different streams are never distorted.
+ */
 export function useCameraTileSizing(groupRef, participantCount) {
   useLayoutEffect(() => {
     const group = groupRef.current;
     if (!group || !participantCount) return undefined;
 
     const sizeTiles = () => {
-      const columns = participantCount === 1
-        ? 1
-        : participantCount === 2
-          ? 2
-          : 2;
-      const rows = Math.ceil(participantCount / columns);
+      const tiles = Array.from(group.children);
+      if (!tiles.length) return;
+
       const styles = getComputedStyle(group);
       const gapX = parseFloat(styles.columnGap) || 0;
       const gapY = parseFloat(styles.rowGap) || 0;
-      const cellWidth = (group.clientWidth - gapX * (columns - 1)) / columns;
-      const cellHeight = (group.clientHeight - gapY * (rows - 1)) / rows;
+      const boxes = computeTileBoxes({
+        ratios: tiles.map(readAspectRatio),
+        containerWidth: group.clientWidth,
+        containerHeight: group.clientHeight,
+        columns: stageColumns(participantCount),
+        gapX,
+        gapY,
+      });
 
-      Array.from(group.children).forEach((tile) => {
-        const ratio = readAspectRatio(tile);
-        const width = Math.min(cellWidth, cellHeight * ratio);
-        const height = width / ratio;
+      tiles.forEach((tile, index) => {
+        const box = boxes[index];
+        if (!box) return;
         const currentWidth = parseFloat(tile.style.width);
         const currentHeight = parseFloat(tile.style.height);
-        if (!Number.isFinite(currentWidth) || Math.abs(currentWidth - width) > 0.5) {
-          tile.style.width = `${width}px`;
+        if (!Number.isFinite(currentWidth) || Math.abs(currentWidth - box.width) > 0.5) {
+          tile.style.width = `${box.width}px`;
         }
-        if (!Number.isFinite(currentHeight) || Math.abs(currentHeight - height) > 0.5) {
-          tile.style.height = `${height}px`;
+        if (!Number.isFinite(currentHeight) || Math.abs(currentHeight - box.height) > 0.5) {
+          tile.style.height = `${box.height}px`;
         }
       });
     };

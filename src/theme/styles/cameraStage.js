@@ -13,6 +13,7 @@ export const cameraStageStyles = {
     borderRadius: "20px",
     background: "linear-gradient(145deg, rgba(47,39,54,0.9), rgba(30,27,40,0.94))",
     boxShadow: "0 22px 60px rgba(0,0,0,0.24), inset 0 1px rgba(255,255,255,0.045)",
+    "@media (min-width: 641px) and (max-width: 1024px)": { p: 1.375, borderRadius: "16px" },
     "@media (max-width: 640px)": { p: 1.125, borderRadius: "13px" },
   },
   stageLabel: {
@@ -30,20 +31,22 @@ export const cameraStageStyles = {
   videoGroup: {
     display: "grid",
     flex: 1,
+    minWidth: 0,
     minHeight: 0,
     gridTemplateColumns: "minmax(0, 1fr)",
     gridTemplateRows: "minmax(0, 1fr)",
     alignItems: "center",
     justifyItems: "center",
     gap: 1.5,
+    "@media (min-width: 641px) and (max-width: 1024px)": { gap: 1.25 },
+    "@media (max-width: 640px)": { gap: 0.75 },
+    "@media (max-width: 380px)": { gap: 0.5 },
     '&[data-participant-count="2"]': {
       gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-      "@media (max-width: 640px)": { gap: 0.75 },
     },
     '&[data-participant-count="3"], &[data-participant-count="4"]': {
       gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
       gridTemplateRows: "repeat(2, minmax(0, 1fr))",
-      "@media (max-width: 640px)": { gap: 0.75 },
     },
     '&[data-participant-count="3"] > :nth-of-type(3)': {
       gridColumn: "1 / -1",

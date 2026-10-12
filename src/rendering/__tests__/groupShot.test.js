@@ -3,6 +3,7 @@ import {
   GROUP_SHOT_WIDTH,
   composeGroupShot,
 } from "../canvas.js";
+import { GROUP_TILE_FOCUS } from "../cropGuide.js";
 
 function createContext() {
   return {
@@ -74,6 +75,45 @@ describe("composeGroupShot", () => {
       const destHeight = context.drawImage.mock.calls[index][8];
       expect(y + destHeight / 2).toBeCloseTo(GROUP_SHOT_HEIGHT / 2, 6);
     });
+  });
+
+  it("frames a tall phone into a wide tile without cutting off the head", () => {
+    const phone = { video: { videoWidth: 405, videoHeight: 720 }, label: "Phone" };
+    const desktop = { video: { videoWidth: 1280, videoHeight: 720 }, label: "Desktop" };
+
+    composeGroupShot([
+      phone,
+      desktop,
+      { video: { videoWidth: 405, videoHeight: 720 }, label: "Phone 2" },
+      { video: { videoWidth: 1280, videoHeight: 720 }, label: "Desktop 2" },
+    ]);
+
+    const tileWidth = GROUP_SHOT_WIDTH / 2;
+    const tileHeight = GROUP_SHOT_HEIGHT / 2;
+    const [phoneCall, desktopCall] = context.drawImage.mock.calls;
+
+    // Every tile is drawn at its grid size, no stretching, and cover-cropped to
+    // that tile's aspect ratio.
+    for (const call of context.drawImage.mock.calls) {
+      expect(call[7]).toBeCloseTo(tileWidth, 6);
+      expect(call[8]).toBeCloseTo(tileHeight, 6);
+      expect(call[3] / call[4]).toBeCloseTo(tileWidth / tileHeight, 6);
+    }
+
+    // Tall phone: full width kept, bottom trimmed, and the crop anchored above
+    // centre so the head stays in frame.
+    const [, , phoneSourceY, phoneSourceW, phoneSourceH] = phoneCall;
+    const centredY = (720 - phoneSourceH) / 2;
+    expect(phoneSourceW).toBeCloseTo(405, 6);
+    expect(phoneSourceH).toBeLessThan(720);
+    expect(phoneSourceY).toBeLessThan(centredY);
+    expect(phoneSourceY).toBeCloseTo((720 - phoneSourceH) * GROUP_TILE_FOCUS.y, 6);
+
+    // Wide desktop: keeps its full height and trims the sides.
+    const [, , desktopSourceY, desktopSourceW, desktopSourceH] = desktopCall;
+    expect(desktopSourceY).toBe(0);
+    expect(desktopSourceH).toBe(720);
+    expect(desktopSourceW).toBeLessThan(1280);
   });
 
   it("returns an empty group canvas when no participant has a video", () => {

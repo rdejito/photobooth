@@ -105,6 +105,7 @@ photobooth/
     │   ├── constants.js           FRAMES, FRAME_GROUPS and LAYOUTS lists, burst length
     │   ├── utils.js               Room-code to peer-id mapping, label helpers,
     │   │                          gallery entry factory
+    │   ├── cameraTileLayout.js    Shared-height live tile geometry for mixed ratios
     │   └── download.js            Shared image-download helper + filename policy
     ├── theme/
     │   ├── muiTheme.js            Shared MUI theme
