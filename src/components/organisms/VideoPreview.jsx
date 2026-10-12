@@ -28,6 +28,7 @@ function readStreamSize(stream) {
  * @param {string} props.label - Participant name.
  * @param {boolean} [props.muted] - Mutes audio and tags the tile "YOU".
  * @param {boolean} [props.cameraEnabled] - False shows the "Camera off" state.
+ * @param {boolean} [props.connected] - False shows the "Reconnecting…" state.
  * @param {number} [props.participantCount] - Size of the group in the photo.
  * @param {number} [props.participantIndex] - This participant's tile position.
  * @param {string} [props.layout] - Selected frame layout key.
@@ -38,6 +39,7 @@ export default function VideoPreview({
   label,
   muted = false,
   cameraEnabled = true,
+  connected = true,
   participantCount = 1,
   participantIndex = 0,
   layout = "single-horizontal",
@@ -45,14 +47,18 @@ export default function VideoPreview({
   const elementRef = useRef(null);
   const [videoSize, setVideoSize] = useState(() => readStreamSize(stream));
 
+  // A disconnected tile must never keep showing its last decoded frame, so the
+  // srcObject is detached (not just hidden) until the peer reconnects.
   useEffect(() => {
     const video = elementRef.current;
-    if (video) video.srcObject = stream;
-    setVideoSize(readStreamSize(stream));
+    if (video) video.srcObject = connected ? stream : null;
+    // Keep the last known ratio while disconnected so the tile doesn't resize
+    // under the placeholder; a fresh stream refreshes it on reconnect.
+    if (stream) setVideoSize(readStreamSize(stream));
     return () => {
       if (video) video.srcObject = null;
     };
-  }, [stream]);
+  }, [stream, connected]);
 
   const updateVideoSize = (event) => {
     const { videoWidth, videoHeight } = event.currentTarget;
@@ -61,7 +67,7 @@ export default function VideoPreview({
     }
   };
 
-  const showGuide = Boolean(stream) && cameraEnabled;
+  const showGuide = Boolean(stream) && cameraEnabled && connected;
   const cropRegion = useMemo(() => {
     if (!showGuide) return null;
     return ensureVisibleRegion(
@@ -103,14 +109,16 @@ export default function VideoPreview({
         className={cameraEnabled ? undefined : "is-camera-off"}
         sx={videoPreviewStyles.video}
       />
-      {(!stream || !cameraEnabled) && (
+      {(!stream || !cameraEnabled || !connected) && (
         <Box
           sx={{
             ...videoPreviewStyles.placeholder,
-            ...(cameraEnabled ? {} : videoPreviewStyles.placeholderOff),
+            ...(cameraEnabled && connected ? {} : videoPreviewStyles.placeholderOff),
           }}
           role="status"
-          aria-label={`${label}'s camera is ${cameraEnabled ? "connecting" : "off"}`}
+          aria-label={`${label}'s camera is ${
+            !connected ? "reconnecting" : cameraEnabled ? "connecting" : "off"
+          }`}
         >
           <Box
             component="span"
@@ -121,7 +129,7 @@ export default function VideoPreview({
             {label.slice(0, 1).toUpperCase()}
           </Box>
           <Typography component="span" sx={videoPreviewStyles.placeholderMessage}>
-            {cameraEnabled ? "Connecting camera…" : "Camera off"}
+            {!connected ? "Reconnecting…" : cameraEnabled ? "Connecting camera…" : "Camera off"}
           </Typography>
         </Box>
       )}

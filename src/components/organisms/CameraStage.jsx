@@ -60,6 +60,7 @@ export default function CameraStage({
             label={participant.label}
             muted={participant.local}
             cameraEnabled={participant.cameraEnabled}
+            connected={participant.connected ?? true}
             participantCount={participants.length}
             participantIndex={index}
             layout={layout}

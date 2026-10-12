@@ -19,7 +19,7 @@ export function attachRoomConnection(session, connection) {
         "The connection closed before joining. Check the room code and make sure the host's booth is still open.",
       );
     }
-    session.removeMember(connection.peer);
+    session.handlePeerDisconnected(connection.peer);
   });
   connection.on("error", (error) => {
     if (!session.isHost && !session.joined) {
@@ -28,7 +28,7 @@ export function attachRoomConnection(session, connection) {
         : "Couldn't connect to that room. Check your network and try again.";
       session.failJoin(message);
     }
-    session.removeMember(connection.peer);
+    session.handlePeerDisconnected(connection.peer);
   });
 }
 
@@ -60,6 +60,12 @@ function handleRoomMessage(session, connection, message) {
   }
   if (message.type === "leave" && session.isHost) {
     session.removeMember(connection.peer);
+    return;
+  }
+  // An unload is a known departure, but the tile still shows the disconnected
+  // status for the grace period before the roster reflows.
+  if (message.type === "departing" && session.isHost) {
+    session.handlePeerDisconnected(connection.peer);
     return;
   }
   if (message.type === "roster" && !session.isHost) {

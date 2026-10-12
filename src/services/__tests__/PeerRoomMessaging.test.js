@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { pack, unpack } from "peerjs-js-binarypack";
-import { broadcastCountdown, parseCountdownMessage } from "../PeerRoomMessaging.js";
+import {
+  attachRoomConnection,
+  broadcastCountdown,
+  parseCountdownMessage,
+} from "../PeerRoomMessaging.js";
 
 describe("parseCountdownMessage", () => {
   it("accepts the clearing null message when the shot key is absent", () => {
@@ -81,5 +85,66 @@ describe("broadcastCountdown", () => {
     const session = createSession({ isHost: false });
     broadcastCountdown(session, null);
     expect(session.connections.get("guest-1").send).not.toHaveBeenCalled();
+  });
+});
+
+describe("attachRoomConnection departure handling", () => {
+  /** A connection stand-in that records the handlers the session registers. */
+  function createConnection(peer = "guest-1") {
+    const handlers = {};
+    return {
+      peer,
+      open: true,
+      handlers,
+      send: vi.fn(),
+      close: vi.fn(),
+      on: (event, handler) => {
+        handlers[event] = handler;
+      },
+    };
+  }
+
+  function createHostSession() {
+    return {
+      isHost: true,
+      joined: true,
+      members: ["host", "guest-1"],
+      connections: new Map(),
+      removeMember: vi.fn(),
+      handlePeerDisconnected: vi.fn(),
+      failJoin: vi.fn(),
+    };
+  }
+
+  it("removes a member immediately on an explicit leave", () => {
+    const session = createHostSession();
+    const connection = createConnection();
+    attachRoomConnection(session, connection);
+
+    connection.handlers.data({ type: "leave" });
+
+    expect(session.removeMember).toHaveBeenCalledWith("guest-1");
+    expect(session.handlePeerDisconnected).not.toHaveBeenCalled();
+  });
+
+  it("starts the disconnect grace period on an unload departing message", () => {
+    const session = createHostSession();
+    const connection = createConnection();
+    attachRoomConnection(session, connection);
+
+    connection.handlers.data({ type: "departing" });
+
+    expect(session.handlePeerDisconnected).toHaveBeenCalledWith("guest-1");
+    expect(session.removeMember).not.toHaveBeenCalled();
+  });
+
+  it("starts the disconnect grace period when the connection drops", () => {
+    const session = createHostSession();
+    const connection = createConnection();
+    attachRoomConnection(session, connection);
+
+    connection.handlers.close();
+
+    expect(session.handlePeerDisconnected).toHaveBeenCalledWith("guest-1");
   });
 });

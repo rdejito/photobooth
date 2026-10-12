@@ -118,13 +118,26 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
     setCameraEnabled(nextEnabled);
   };
 
-  useEffect(
-    () => () => {
-      sessionRef.current?.destroy();
+  // Release the camera and signal departure both when the component unmounts
+  // and when the browser unloads the page (tab close, reload, navigation).
+  // `pagehide` is skipped when the page is entering the back/forward cache,
+  // since such a page can resume with its session intact. The unload teardown
+  // also stops the local tracks so the camera light goes out immediately.
+  useEffect(() => {
+    const teardown = (options) => {
+      sessionRef.current?.destroy(options);
       sessionRef.current = null;
-    },
-    [],
-  );
+    };
+    const handlePageHide = (event) => {
+      if (event.persisted) return;
+      teardown({ unload: true });
+    };
+    window.addEventListener("pagehide", handlePageHide);
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide);
+      teardown();
+    };
+  }, []);
 
   return {
     stage,
@@ -137,7 +150,15 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
     cameraEnabled,
     toggleCamera,
     isHost: Boolean(sessionRef.current?.isHost),
-    connected: participants.some((participant) => !participant.local && participant.stream),
+    // A peer in its disconnect grace window is still part of the room, so it
+    // keeps the session "connected" instead of flashing the waiting banner for
+    // a brief blip. Peers that are still connecting (no stream, not yet
+    // disconnected) continue not to count, as before. Capture readiness stays
+    // strict in App (it needs every participant's live stream).
+    connected: participants.some(
+      (participant) =>
+        !participant.local && (participant.stream || participant.connected === false),
+    ),
     broadcastPhoto: (photo) => sessionRef.current?.broadcastPhoto(photo),
     broadcastCountdown: (value, meta) =>
       sessionRef.current?.broadcastCountdown(value, meta),

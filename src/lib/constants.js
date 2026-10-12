@@ -31,3 +31,8 @@ export const FRAME_IDS = FRAMES.map(({ key }) => key);
 // A photobooth session captures this many posed shots, each after its own
 // three-second countdown and flash, before the final photo is composed.
 export const PHOTO_SHOT_COUNT = 4;
+
+// How long a dropped participant's tile shows the "Reconnecting…" status
+// before it is removed and the roster reflows. A short window absorbs a brief
+// network blip or a tab reload without losing the seat (see the rejoin story).
+export const DISCONNECT_GRACE_MS = 3000;

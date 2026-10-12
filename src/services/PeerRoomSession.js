@@ -11,6 +11,11 @@ import {
   sendPhotoToMembers,
   sendCameraStates,
 } from "./PeerRoomMessaging.js";
+import {
+  destroyRoom,
+  handlePeerDisconnected,
+  markPeerConnected,
+} from "./PeerRoomLifecycle.js";
 
 export class PeerRoomSession {
   constructor({
@@ -40,6 +45,10 @@ export class PeerRoomSession {
     this.connections = new Map();
     this.calls = new Map();
     this.remoteStreams = new Map();
+    // Peers whose connection dropped but whose tile is still shown as
+    // "Reconnecting…" during the grace period (see handlePeerDisconnected).
+    this.disconnectedPeers = new Set();
+    this.disconnectTimers = new Map();
     this.joined = false;
     this.joinTimeout = null;
     this.destroyed = false;
@@ -133,11 +142,16 @@ export class PeerRoomSession {
     this.calls.set(call.peer, call);
     call.on("stream", (stream) => {
       this.remoteStreams.set(call.peer, stream);
+      this.markPeerConnected(call.peer);
       this.publishParticipants();
       this.onStatus("Participants are connected. Ready for a photo.");
     });
-    call.on("close", () => this.removeCall(call.peer));
-    call.on("error", () => this.removeCall(call.peer));
+    // `close` is the authoritative teardown signal: PeerJS follows every
+    // MediaConnection `error` with `close` (see the IceNegotiator), so treating
+    // the error itself as a disconnect would only risk acting on a transient
+    // negotiation failure. Unhandled `error` events are safe to omit because
+    // PeerJS uses eventemitter3, which does not throw on them.
+    call.on("close", () => this.handlePeerDisconnected(call.peer));
   }
 
   publishParticipants() {
@@ -151,6 +165,7 @@ export class PeerRoomSession {
             : `Guest ${Math.max(index, 1)}`,
         local: peerId === this.peerId,
         cameraEnabled: this.cameraStates.get(peerId) ?? true,
+        connected: peerId === this.peerId || !this.disconnectedPeers.has(peerId),
         stream: peerId === this.peerId ? this.stream : this.remoteStreams.get(peerId) || null,
       })),
     );
@@ -176,8 +191,19 @@ export class PeerRoomSession {
     this.publishParticipants();
   }
 
+  /** Cancels a pending disconnect removal once a peer reconnects. */
+  markPeerConnected(peerId) {
+    markPeerConnected(this, peerId);
+  }
+
+  /** Shows a dropped peer as reconnecting, removing the tile after the grace. */
+  handlePeerDisconnected(peerId) {
+    handlePeerDisconnected(this, peerId);
+  }
+
   removeMember(peerId) {
     if (peerId === this.peerId || !this.members.includes(peerId)) return;
+    this.markPeerConnected(peerId);
     this.members = this.members.filter((id) => id !== peerId);
     this.connections.delete(peerId);
     this.cameraStates.delete(peerId);
@@ -211,27 +237,12 @@ export class PeerRoomSession {
     broadcastCountdown(this, value, meta);
   }
 
-  destroy() {
-    if (this.destroyed) return;
-    this.destroyed = true;
-    clearTimeout(this.joinTimeout);
-    this.joinTimeout = null;
-    if (this.isHost) {
-      for (const connection of this.connections.values()) {
-        if (connection.open) connection.send({ type: "room-closed" });
-      }
-    } else {
-      const hostConnection = this.connections.get(this.roomHostId);
-      if (hostConnection?.open) hostConnection.send({ type: "leave" });
-    }
-    for (const call of this.calls.values()) call.close();
-    for (const connection of this.connections.values()) connection.close();
-    this.peer?.destroy();
-    this.stream.getTracks().forEach((track) => track.stop());
-    this.connections.clear();
-    this.calls.clear();
-    this.remoteStreams.clear();
-    this.cameraStates.clear();
-    this.photoTransfer.clear();
+  /**
+   * Tears the session down and releases the local camera. Pass
+   * `{ unload: true }` when the page is unloading so remote peers show the
+   * disconnected status before the roster reflows.
+   */
+  destroy(options) {
+    destroyRoom(this, options);
   }
 }
