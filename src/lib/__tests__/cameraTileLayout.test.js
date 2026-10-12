@@ -1,4 +1,9 @@
-import { computeTileBoxes, stageColumns } from "../cameraTileLayout.js";
+import {
+  chooseColumns,
+  columnOptions,
+  computeTileBoxes,
+  stageColumns,
+} from "../cameraTileLayout.js";
 
 describe("stageColumns", () => {
   it("uses one column alone and two per row for groups", () => {
@@ -7,6 +12,90 @@ describe("stageColumns", () => {
     expect(stageColumns(2)).toBe(2);
     expect(stageColumns(3)).toBe(2);
     expect(stageColumns(4)).toBe(2);
+  });
+});
+
+describe("columnOptions", () => {
+  it("only offers arrangements whose last row is full or a single centred tile", () => {
+    expect(columnOptions(1)).toEqual([1]);
+    expect(columnOptions(2)).toEqual([1, 2]);
+    expect(columnOptions(3)).toEqual([1, 2, 3]);
+    expect(columnOptions(4)).toEqual([1, 2, 4]);
+  });
+});
+
+describe("chooseColumns", () => {
+  const gap = 24;
+
+  it("stacks two landscape cameras on a portrait stage", () => {
+    const columns = chooseColumns({
+      ratios: [16 / 9, 16 / 9],
+      containerWidth: 340,
+      containerHeight: 600,
+      gapX: 12,
+      gapY: 12,
+    });
+
+    expect(columns).toBe(1);
+  });
+
+  it("places two landscape cameras side by side on a wide stage", () => {
+    const columns = chooseColumns({
+      ratios: [16 / 9, 16 / 9],
+      containerWidth: 1200,
+      containerHeight: 600,
+      gapX: gap,
+      gapY: gap,
+    });
+
+    expect(columns).toBe(2);
+  });
+
+  it("runs four portrait cameras across a wide stage", () => {
+    const columns = chooseColumns({
+      ratios: [9 / 16, 9 / 16, 9 / 16, 9 / 16],
+      containerWidth: 1400,
+      containerHeight: 700,
+      gapX: gap,
+      gapY: gap,
+    });
+
+    expect(columns).toBe(4);
+  });
+
+  it("keeps a two-by-two grid for four landscape cameras", () => {
+    const columns = chooseColumns({
+      ratios: [16 / 9, 16 / 9, 16 / 9, 16 / 9],
+      containerWidth: 1200,
+      containerHeight: 700,
+      gapX: gap,
+      gapY: gap,
+    });
+
+    expect(columns).toBe(2);
+  });
+
+  it("picks the arrangement whose shared height is largest", () => {
+    const input = {
+      ratios: [9 / 16, 16 / 9, 9 / 16],
+      containerWidth: 1100,
+      containerHeight: 620,
+      gapX: gap,
+      gapY: gap,
+    };
+    const columns = chooseColumns(input);
+    const chosen = computeTileBoxes({ ...input, columns })[0].height;
+    const alternatives = columnOptions(input.ratios.length).map(
+      (option) => computeTileBoxes({ ...input, columns: option })[0].height,
+    );
+
+    expect(chosen).toBe(Math.max(...alternatives));
+  });
+
+  it("falls back to the participant-count columns before measurement", () => {
+    expect(chooseColumns({ ratios: [16 / 9, 16 / 9] })).toBe(2);
+    expect(chooseColumns({ ratios: [16 / 9] })).toBe(1);
+    expect(chooseColumns({ ratios: [] })).toBe(1);
   });
 });
 

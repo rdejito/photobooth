@@ -105,7 +105,8 @@ photobooth/
     │   ├── constants.js           FRAMES, FRAME_GROUPS and LAYOUTS lists, burst length
     │   ├── utils.js               Room-code to peer-id mapping, label helpers,
     │   │                          gallery entry factory
-    │   ├── cameraTileLayout.js    Shared-height live tile geometry for mixed ratios
+    │   ├── cameraTileLayout.js    Shared-height live tile geometry for mixed
+    │   │                          ratios, with an arrangement that fills the stage
     │   └── download.js            Shared image-download helper + filename policy
     ├── theme/
     │   ├── muiTheme.js            Shared MUI theme
@@ -126,7 +127,8 @@ photobooth/
     │   ├── usePhotoCapture.js     Capture session shell: countdown/flash/preview
     │   │                          state and channel glue between the capture modules
     │   ├── usePhotoGallery.js     Persists the local photo gallery in localStorage
-    │   ├── useCameraTileSizing.js Sizes camera tiles to fit the grid
+    │   ├── useCameraTileSizing.js Sizes camera tiles to fill the stage and
+    │   │                          reflows them on resize / rotation
     │   └── capture/
     │       ├── captureSequence.js Four-shot countdown/snapshot controller + timers
     │       ├── hostComposer.js    Host-side: compose, re-compose, save and broadcast

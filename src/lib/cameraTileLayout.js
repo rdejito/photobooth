@@ -8,11 +8,71 @@
  * widest row still fits the stage width and the stacked rows still fit its
  * height. Each tile keeps its own ratio, so nothing is distorted and the live
  * crop guide (which assumes the tile matches the camera) stays accurate.
+ *
+ * Which arrangement fits best depends on the stage's shape: two landscape
+ * cameras read better stacked on a portrait phone, while four portrait cameras
+ * read better in one row on a wide desktop. `chooseColumns` scores the balanced
+ * candidates and keeps the one whose shared height grows largest, i.e. the one
+ * that leaves the least dead space.
  */
 
-/** Grid columns for a participant count: one alone, otherwise two per row. */
+/** Default grid columns for a participant count: one alone, otherwise two. */
 export function stageColumns(participantCount) {
   return participantCount <= 1 ? 1 : 2;
+}
+
+/**
+ * Balanced column counts worth scoring for a group. Every option either fills
+ * its last row or leaves exactly one trailing tile (three people in two
+ * columns), so a partial row can never push a wide tile out of its cell.
+ *
+ * @param {number} participantCount - Number of tiles to arrange.
+ * @returns {number[]} Candidate column counts, ascending.
+ */
+export function columnOptions(participantCount) {
+  if (participantCount <= 1) return [1];
+  if (participantCount === 2) return [1, 2];
+  if (participantCount === 3) return [1, 2, 3];
+  return [1, 2, 4];
+}
+
+/**
+ * Picks the arrangement that fills the stage best by maximising the shared tile
+ * height (total tile area) across the balanced candidates. Ties keep the
+ * simplest, fewest-column arrangement.
+ *
+ * @param {object} input - Same fields as `computeTileBoxes`.
+ * @returns {number} Best column count; `stageColumns` before measurement.
+ */
+export function chooseColumns({
+  ratios = [],
+  containerWidth = 0,
+  containerHeight = 0,
+  gapX = 0,
+  gapY = 0,
+} = {}) {
+  const count = ratios.length;
+  if (!count) return 1;
+  if (containerWidth <= 0 || containerHeight <= 0) return stageColumns(count);
+
+  let best = stageColumns(count);
+  let bestHeight = -1;
+  for (const columns of columnOptions(count)) {
+    const [first] = computeTileBoxes({
+      ratios,
+      containerWidth,
+      containerHeight,
+      columns,
+      gapX,
+      gapY,
+    });
+    const tileHeight = first?.height ?? 0;
+    if (tileHeight > bestHeight + 0.5) {
+      bestHeight = tileHeight;
+      best = columns;
+    }
+  }
+  return best;
 }
 
 /**

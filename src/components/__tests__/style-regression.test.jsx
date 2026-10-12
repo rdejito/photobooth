@@ -18,31 +18,24 @@ describe("MUI setup docs and build coverage", () => {
 describe("camera stage breakpoint regression", () => {
   const { stage, videoGroup } = cameraStageStyles;
 
-  it("keeps the video grid from overflowing on any screen size", () => {
+  it("wraps and centres tiles so mixed ratios cannot overflow or overlap", () => {
+    expect(videoGroup.display).toBe("flex");
+    expect(videoGroup.flexWrap).toBe("wrap");
+    expect(videoGroup.alignItems).toBe("center");
+    expect(videoGroup.alignContent).toBe("center");
+    expect(videoGroup.justifyContent).toBe("center");
     expect(videoGroup.minWidth).toBe(0);
     expect(videoGroup.minHeight).toBe(0);
-    expect(videoGroup.gridTemplateColumns).toBe("minmax(0, 1fr)");
-    expect(videoGroup.gridTemplateRows).toBe("minmax(0, 1fr)");
   });
 
-  it("lays 2, 3 and 4 participants out on the expected columns", () => {
-    expect(
-      videoGroup['&[data-participant-count="2"]'].gridTemplateColumns,
-    ).toBe("repeat(2, minmax(0, 1fr))");
-    const dense =
-      videoGroup['&[data-participant-count="3"], &[data-participant-count="4"]'];
-    expect(dense.gridTemplateColumns).toBe("repeat(2, minmax(0, 1fr))");
-    expect(dense.gridTemplateRows).toBe("repeat(2, minmax(0, 1fr))");
+  it("keeps each tile at its computed size instead of flex-shrinking", () => {
+    const tile = videoPreviewStyles.tile;
+    expect(tile.flex).toBe("0 0 auto");
+    expect(tile.minWidth).toBe(0);
+    expect(tile.minHeight).toBe(0);
   });
 
-  it("centres the odd third tile across both stage columns", () => {
-    expect(videoGroup['&[data-participant-count="3"] > :nth-of-type(3)']).toMatchObject({
-      gridColumn: "1 / -1",
-      justifySelf: "center",
-    });
-  });
-
-  it("tightens the grid gap and stage padding from desktop to phone", () => {
+  it("tightens the stage gap and padding from desktop to phone", () => {
     expect(videoGroup.gap).toBe(1.5);
     expect(videoGroup["@media (min-width: 641px) and (max-width: 1024px)"]).toEqual({
       gap: 1.25,
@@ -54,6 +47,18 @@ describe("camera stage breakpoint regression", () => {
       p: 1.375,
     });
     expect(stage["@media (max-width: 640px)"]).toMatchObject({ p: 1.125 });
+  });
+
+  it("adapts the stage gap and padding to very large and very small viewports", () => {
+    expect(videoGroup["@media (min-width: 1600px)"]).toEqual({ gap: 2 });
+    expect(
+      videoGroup["@media (max-width: 360px) and (orientation: portrait)"],
+    ).toEqual({ gap: 0.375 });
+
+    expect(stage["@media (min-width: 1600px)"]).toEqual({ p: 1.75 });
+    expect(stage["@media (max-width: 360px) and (orientation: portrait)"]).toEqual({
+      p: 1,
+    });
   });
 
   it("keeps name labels inside narrow mixed-ratio tiles", () => {

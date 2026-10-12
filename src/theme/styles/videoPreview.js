@@ -5,12 +5,12 @@
 export const videoPreviewStyles = {
   tile: {
     position: "relative",
+    flex: "0 0 auto",
     width: "100%",
     minWidth: 0,
     minHeight: 0,
     maxHeight: "100%",
     alignSelf: "center",
-    justifySelf: "center",
     overflow: "hidden",
     aspectRatio: "var(--camera-aspect-ratio, 4 / 3)",
     borderRadius: "13px",
