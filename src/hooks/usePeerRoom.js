@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { PeerRoomSession } from "../services/PeerRoomSession.js";
+import {
+  clearRejoinSession,
+  createDeviceId,
+  normalizeRoomCode,
+  readRejoinSession,
+  saveRejoinSession,
+} from "../lib/rejoin.js";
 
 const getCameraPermissionMessage = (error) => {
   if (!error) return "We couldn’t access your camera or microphone. Please allow camera access in your browser and try again.";
@@ -26,9 +33,10 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
   const [callStatus, setCallStatus] = useState("");
   const [participants, setParticipants] = useState([]);
   const [cameraEnabled, setCameraEnabled] = useState(true);
+  const [roomCode, setRoomCode] = useState("");
   const sessionRef = useRef(null);
 
-  const startSession = async (role, room) => {
+  const startSession = async (role, room, deviceId = null) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
@@ -36,6 +44,7 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
       });
       const session = new PeerRoomSession({
         stream,
+        deviceId,
         onParticipants: setParticipants,
         onStatus: setCallStatus,
         onPhoto,
@@ -52,6 +61,8 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
           onCountdown(null);
           sessionRef.current?.destroy();
           sessionRef.current = null;
+          clearRejoinSession();
+          setRoomCode("");
           setStage("join");
           setParticipants([]);
           setJoinStatus("The room creator ended the photobooth.");
@@ -63,6 +74,8 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
           onCountdown(null);
           setParticipants([]);
           setCameraEnabled(true);
+          clearRejoinSession();
+          setRoomCode("");
           setStage("join");
           setJoinStatus(message);
         },
@@ -79,23 +92,35 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
   };
 
   const createRoom = (roomInput, setRoomInput) => {
-    const room = (roomInput || Math.random().toString(36).slice(2, 7)).toUpperCase();
+    const room = normalizeRoomCode(roomInput || Math.random().toString(36).slice(2, 7));
     setRoomInput(room);
+    setRoomCode(room);
     setCallStatus(`Opening photobooth "${room}"...`);
     startSession("host", room);
   };
 
-  const joinRoom = (roomInput) => {
-    const room = (roomInput || "").toUpperCase().trim();
+  const joinRoom = (roomInput, { rejoin = false } = {}) => {
+    const room = normalizeRoomCode(roomInput || "");
     if (!room) {
       setJoinStatus("Enter a room code first.");
       return;
     }
-    setCallStatus(`Joining photobooth "${room}"...`);
-    startSession("guest", room);
+    // Remember the room and this device's rejoin id so a refresh or accidental
+    // close can drop the guest back into the same booth.
+    const deviceId = readRejoinSession()?.deviceId || createDeviceId();
+    saveRejoinSession(room, deviceId);
+    setRoomCode(room);
+    setCallStatus(
+      rejoin
+        ? `Reconnecting to photobooth "${room}"...`
+        : `Joining photobooth "${room}"...`,
+    );
+    startSession("guest", room, deviceId);
   };
 
   const leaveRoom = () => {
+    clearRejoinSession();
+    setRoomCode("");
     sessionRef.current?.destroy();
     sessionRef.current = null;
     setParticipants([]);
@@ -117,6 +142,19 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
     sessionRef.current?.setCameraEnabled(nextEnabled);
     setCameraEnabled(nextEnabled);
   };
+
+  // Restore the last room on load so a refresh or accidental tab close returns
+  // the guest to the same booth without re-typing the code. Room codes left by
+  // an explicit leave or a closed room are already cleared, so only a genuine
+  // disconnect reaches here.
+  useEffect(() => {
+    const saved = readRejoinSession();
+    if (!saved?.room) return;
+    setJoinStatus("Reconnecting to your booth…");
+    joinRoom(saved.room, { rejoin: true });
+    // Run once on mount; joinRoom only reads refs and stable state setters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Release the camera and signal departure both when the component unmounts
   // and when the browser unloads the page (tab close, reload, navigation).
@@ -149,6 +187,7 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
     participants,
     cameraEnabled,
     toggleCamera,
+    roomCode,
     isHost: Boolean(sessionRef.current?.isHost),
     // A peer in its disconnect grace window is still part of the room, so it
     // keeps the session "connected" instead of flashing the waiting banner for

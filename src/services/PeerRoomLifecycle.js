@@ -1,4 +1,4 @@
-import { DISCONNECT_GRACE_MS } from "../lib/constants.js";
+import { DISCONNECT_GRACE_MS, MAX_PARTICIPANTS } from "../lib/constants.js";
 
 /**
  * Presence and teardown helpers for a `PeerRoomSession`.
@@ -44,6 +44,89 @@ export function handlePeerDisconnected(session, peerId) {
     session.removeMember(peerId);
   }, DISCONNECT_GRACE_MS);
   session.disconnectTimers.set(peerId, timer);
+}
+
+/**
+ * Finds the still-seated peer that a rejoin id belongs to, if any. Matching is
+ * scoped to `members` so a stale id left over after a removal cannot resurrect.
+ */
+function findSeatByDeviceId(session, deviceId) {
+  for (const [peerId, id] of session.deviceIds) {
+    if (id === deviceId && session.members.includes(peerId)) return peerId;
+  }
+  return null;
+}
+
+/**
+ * Hands a returning guest's old seat to its new peer id. The roster slot is
+ * carried over (so the tile resumes in place instead of the roster dipping and
+ * reflowing) and the pending disconnect removal is cancelled. The camera state
+ * is adopted from the fresh join message — that is the camera's real state in
+ * the new session, not the departed session's historical one.
+ */
+function seatReturningGuest(session, returningId, newPeerId, cameraEnabled) {
+  const timer = session.disconnectTimers.get(returningId);
+  if (timer) {
+    clearTimeout(timer);
+    session.disconnectTimers.delete(returningId);
+  }
+  session.disconnectedPeers.delete(returningId);
+  const index = session.members.indexOf(returningId);
+  if (index !== -1) session.members[index] = newPeerId;
+  session.cameraStates.set(newPeerId, cameraEnabled);
+  session.cameraStates.delete(returningId);
+  session.calls.get(returningId)?.close();
+  session.calls.delete(returningId);
+  session.remoteStreams.delete(returningId);
+  const oldConnection = session.connections.get(returningId);
+  if (oldConnection?.open) oldConnection.close();
+  session.connections.delete(returningId);
+  session.deviceIds.delete(returningId);
+}
+
+/**
+ * Admits a guest (or re-admits a refreshed one) to the host's room. A returning
+ * guest sends the same `deviceId` it used before, so its new peer id reclaims
+ * the departed seat rather than being appended as an extra participant. When
+ * the same device reconnects (a reload or a second tab), the newest session
+ * wins the seat; its predecessor's connection is closed.
+ *
+ * @returns {boolean} False when the room is full and the guest was rejected.
+ */
+export function handleGuestJoin(session, connection, message) {
+  const deviceId =
+    typeof message.deviceId === "string" && message.deviceId ? message.deviceId : null;
+  const cameraEnabled =
+    typeof message.cameraEnabled === "boolean" ? message.cameraEnabled : true;
+  const existing = session.members.includes(connection.peer);
+  // Reclaim any seated peer this device id already owns. Deliberately not gated
+  // on the disconnect grace window: on a fast reload the rejoin can beat the
+  // host's processing of the old tab's drop, and gating on it would append a
+  // duplicate seat (or reject the returning guest once the room is full). The
+  // trade-off is that a second live tab of the same device takes over the seat;
+  // `seatReturningGuest` closes the old connection so that tab is not left
+  // silently orphaned.
+  const returningId =
+    deviceId && !existing ? findSeatByDeviceId(session, deviceId) : null;
+
+  if (!existing && !returningId && session.members.length >= MAX_PARTICIPANTS) {
+    connection.send({ type: "room-full" });
+    session.onStatus("This room is full. The limit is four participants.");
+    return false;
+  }
+
+  if (returningId) {
+    seatReturningGuest(session, returningId, connection.peer, cameraEnabled);
+  } else if (existing) {
+    session.markPeerConnected(connection.peer);
+    session.cameraStates.set(connection.peer, cameraEnabled);
+  } else {
+    session.members = [...session.members, connection.peer];
+    session.cameraStates.set(connection.peer, cameraEnabled);
+  }
+  if (deviceId) session.deviceIds.set(connection.peer, deviceId);
+  session.publishParticipants();
+  return true;
 }
 
 /**

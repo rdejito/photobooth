@@ -1,6 +1,5 @@
-import { PHOTO_SHOT_COUNT } from "../lib/constants.js";
-
-const MAX_PARTICIPANTS = 4;
+import { MAX_PARTICIPANTS, PHOTO_SHOT_COUNT } from "../lib/constants.js";
+import { handleGuestJoin } from "./PeerRoomLifecycle.js";
 
 export function attachRoomConnection(session, connection) {
   session.connections.set(connection.peer, connection);
@@ -9,6 +8,7 @@ export function attachRoomConnection(session, connection) {
       connection.send({
         type: "join",
         cameraEnabled: session.cameraStates.get(session.peerId) ?? true,
+        deviceId: session.deviceId,
       });
     }
   });
@@ -39,19 +39,7 @@ function handleRoomMessage(session, connection, message) {
     (!session.isHost && connection.peer !== session.roomHostId)
   ) return;
   if (message.type === "join" && session.isHost) {
-    if (!session.members.includes(connection.peer) &&
-        session.members.length >= MAX_PARTICIPANTS) {
-      connection.send({ type: "room-full" });
-      session.onStatus("This room is full. The limit is four participants.");
-      return;
-    }
-    if (!session.members.includes(connection.peer)) {
-      session.members = [...session.members, connection.peer];
-      session.cameraStates.set(
-        connection.peer,
-        typeof message.cameraEnabled === "boolean" ? message.cameraEnabled : true,
-      );
-      session.publishParticipants();
+    if (handleGuestJoin(session, connection, message)) {
       broadcastRoster(session);
       sendCameraStates(session, connection);
       session.connectMembers();

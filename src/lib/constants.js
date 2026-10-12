@@ -32,6 +32,9 @@ export const FRAME_IDS = FRAMES.map(({ key }) => key);
 // three-second countdown and flash, before the final photo is composed.
 export const PHOTO_SHOT_COUNT = 4;
 
+// A room holds the host plus this many guests before it turns people away.
+export const MAX_PARTICIPANTS = 4;
+
 // How long a dropped participant's tile shows the "Reconnecting…" status
 // before it is removed and the roster reflows. A short window absorbs a brief
 // network blip or a tab reload without losing the seat (see the rejoin story).

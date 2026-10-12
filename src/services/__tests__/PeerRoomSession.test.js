@@ -208,3 +208,16 @@ describe("PeerRoomSession disconnect grace period", () => {
     expect(session.disconnectedPeers.size).toBe(0);
   });
 });
+
+describe("PeerRoomSession rejoin bookkeeping", () => {
+  it("forgets a departed guest's rejoin id", () => {
+    const { stream } = createLocalStream();
+    const { session } = createSession({ localStream: stream, isHost: true });
+    session.members = ["host", "guest-1"];
+    session.deviceIds.set("guest-1", "device-1");
+
+    session.removeMember("guest-1");
+
+    expect(session.deviceIds.has("guest-1")).toBe(false);
+  });
+});

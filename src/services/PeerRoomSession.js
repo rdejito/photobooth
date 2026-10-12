@@ -27,6 +27,7 @@ export class PeerRoomSession {
     onRoomFull,
     onRoomClosed,
     onConnectionFailed,
+    deviceId = null,
   }) {
     this.stream = stream;
     this.onParticipants = onParticipants;
@@ -36,17 +37,19 @@ export class PeerRoomSession {
     this.onRoomFull = onRoomFull;
     this.onRoomClosed = onRoomClosed;
     this.onConnectionFailed = onConnectionFailed;
+    this.deviceId = deviceId;
     this.peer = null;
     this.peerId = null;
     this.roomHostId = null;
     this.isHost = false;
     this.members = [];
+    // Host-only: maps each member's peer id to the stable rejoin id it used.
+    this.deviceIds = new Map();
     this.cameraStates = new Map();
     this.connections = new Map();
     this.calls = new Map();
     this.remoteStreams = new Map();
-    // Peers whose connection dropped but whose tile is still shown as
-    // "Reconnecting…" during the grace period (see handlePeerDisconnected).
+    // Peers whose tile shows "Reconnecting…" during the disconnect grace.
     this.disconnectedPeers = new Set();
     this.disconnectTimers = new Map();
     this.joined = false;
@@ -180,9 +183,7 @@ export class PeerRoomSession {
       return;
     }
     const hostConnection = this.connections.get(this.roomHostId);
-    if (hostConnection?.open) {
-      hostConnection.send({ type: "camera-state", enabled });
-    }
+    if (hostConnection?.open) hostConnection.send({ type: "camera-state", enabled });
   }
 
   removeCall(peerId) {
@@ -209,6 +210,7 @@ export class PeerRoomSession {
     this.cameraStates.delete(peerId);
     this.calls.get(peerId)?.close();
     this.removeCall(peerId);
+    this.deviceIds.delete(peerId);
     if (this.isHost) {
       broadcastRoster(this);
       this.connectMembers();

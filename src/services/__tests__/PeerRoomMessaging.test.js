@@ -148,3 +148,78 @@ describe("attachRoomConnection departure handling", () => {
     expect(session.handlePeerDisconnected).toHaveBeenCalledWith("guest-1");
   });
 });
+
+describe("attachRoomConnection rejoin handling", () => {
+  function createConnection(peer) {
+    const handlers = {};
+    return {
+      peer,
+      open: true,
+      handlers,
+      send: vi.fn(),
+      close: vi.fn(),
+      on: (event, handler) => {
+        handlers[event] = handler;
+      },
+    };
+  }
+
+  function createHostSession() {
+    return {
+      isHost: true,
+      peerId: "host",
+      joined: true,
+      members: ["host"],
+      deviceIds: new Map(),
+      cameraStates: new Map([["host", true]]),
+      calls: new Map(),
+      remoteStreams: new Map(),
+      connections: new Map(),
+      disconnectTimers: new Map(),
+      disconnectedPeers: new Set(),
+      onStatus: vi.fn(),
+      publishParticipants: vi.fn(),
+      markPeerConnected: vi.fn(),
+      removeMember: vi.fn(),
+      handlePeerDisconnected: vi.fn(),
+      failJoin: vi.fn(),
+      connectMembers: vi.fn(),
+    };
+  }
+
+  it("admits a new guest, records its rejoin id, and broadcasts the roster", () => {
+    const session = createHostSession();
+    const connection = createConnection("guest-1");
+    attachRoomConnection(session, connection);
+
+    connection.handlers.data({ type: "join", deviceId: "device-1" });
+
+    expect(session.members).toEqual(["host", "guest-1"]);
+    expect(session.deviceIds.get("guest-1")).toBe("device-1");
+    expect(connection.send).toHaveBeenCalledWith({
+      type: "roster",
+      peerIds: ["host", "guest-1"],
+    });
+    expect(session.connectMembers).toHaveBeenCalled();
+  });
+
+  it("sends this device's rejoin id when a guest announces itself", () => {
+    const session = {
+      ...createHostSession(),
+      isHost: false,
+      peerId: "self",
+      cameraStates: new Map([["self", true]]),
+      deviceId: "device-1",
+    };
+    const connection = createConnection("host");
+    attachRoomConnection(session, connection);
+
+    connection.handlers.open();
+
+    expect(connection.send).toHaveBeenCalledWith({
+      type: "join",
+      cameraEnabled: true,
+      deviceId: "device-1",
+    });
+  });
+});

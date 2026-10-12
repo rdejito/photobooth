@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import FlashOverlay from "./components/atoms/FlashOverlay.jsx";
 import HomePage from "./pages/HomePage.jsx";
@@ -72,6 +72,7 @@ export default function App() {
     participants,
     isHost,
     cameraEnabled,
+    roomCode,
     toggleCamera,
     createRoom,
     joinRoom,
@@ -83,6 +84,16 @@ export default function App() {
     leaveRoom();
     capture.hidePreview();
   };
+
+  // When a room attempt falls back to the join screen (a failed auto-rejoin,
+  // a full room, or a pending camera permission prompt), surface the code the
+  // hook is holding so the user can retry instead of staring at an empty
+  // field. `roomInput` is omitted from the deps so a deliberate clear of the
+  // field later is not undone.
+  useEffect(() => {
+    if (stage === "join" && roomCode && !roomInput) setRoomInput(roomCode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, roomCode]);
 
   return (
     <Box
@@ -130,7 +141,7 @@ export default function App() {
           participants={participants}
           participantVideosRef={participantVideosRef}
           canvasRef={canvasRef}
-          roomCode={roomInput}
+          roomCode={roomCode}
           connected={connected}
           isHost={isHost}
           cameraEnabled={cameraEnabled}
