@@ -221,3 +221,75 @@ describe("PeerRoomSession rejoin bookkeeping", () => {
     expect(session.deviceIds.has("guest-1")).toBe(false);
   });
 });
+
+describe("PeerRoomSession host peer errors", () => {
+  it("does not fail the host when a peer error occurs after the host is ready", () => {
+    const { stream } = createLocalStream();
+    const onConnectionFailed = vi.fn();
+    const session = new PeerRoomSession({
+      stream,
+      onParticipants: () => {},
+      onStatus: () => {},
+      onPhoto: () => {},
+      onCountdown: () => {},
+      onRoomFull: () => {},
+      onRoomClosed: () => {},
+      onConnectionFailed,
+    });
+    session.isHost = true;
+    session.peerId = "host";
+    session.roomHostId = "host";
+    session.members = ["host"];
+    session.joined = false;
+
+    session.handlePeerError({ type: "peer-unavailable" });
+
+    expect(onConnectionFailed).not.toHaveBeenCalled();
+  });
+
+  it("still fails the host on unavailable-id", () => {
+    const { stream } = createLocalStream();
+    const onConnectionFailed = vi.fn();
+    const session = new PeerRoomSession({
+      stream,
+      onParticipants: () => {},
+      onStatus: () => {},
+      onPhoto: () => {},
+      onCountdown: () => {},
+      onRoomFull: () => {},
+      onRoomClosed: () => {},
+      onConnectionFailed,
+    });
+    session.isHost = true;
+    session.peerId = "host";
+    session.roomHostId = "host";
+    session.members = ["host"];
+    session.joined = false;
+
+    session.handlePeerError({ type: "unavailable-id" });
+
+    expect(onConnectionFailed).toHaveBeenCalled();
+  });
+
+  it("does not fail the host on network/webrtc errors", () => {
+    const { stream } = createLocalStream();
+    const onConnectionFailed = vi.fn();
+    const session = new PeerRoomSession({
+      stream,
+      onParticipants: () => {},
+      onStatus: () => {},
+      onPhoto: () => {},
+      onCountdown: () => {},
+      onRoomFull: () => {},
+      onRoomClosed: () => {},
+      onConnectionFailed,
+    });
+    session.isHost = true;
+    session.joined = false;
+
+    session.handlePeerError({ type: "network" });
+    session.handlePeerError({ type: "webrtc" });
+
+    expect(onConnectionFailed).not.toHaveBeenCalled();
+  });
+});

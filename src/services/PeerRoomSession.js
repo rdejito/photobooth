@@ -228,7 +228,7 @@ export class PeerRoomSession {
     }[error.type] || `Connection error: ${error.type}`;
 
     this.onStatus(message);
-    if (error.type === "unavailable-id" || !this.joined) this.failJoin(message);
+    if (error.type === "unavailable-id" || (!this.isHost && !this.joined)) this.failJoin(message);
   }
 
   broadcastPhoto(photo) {
