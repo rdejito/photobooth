@@ -35,13 +35,26 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
   const [cameraEnabled, setCameraEnabled] = useState(true);
   const [roomCode, setRoomCode] = useState("");
   const sessionRef = useRef(null);
+  const pendingRef = useRef(false);
+  const requestIdRef = useRef(0);
+  const unmountedRef = useRef(false);
 
   const startSession = async (role, room, deviceId = null) => {
+    const requestId = ++requestIdRef.current;
+    pendingRef.current = true;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: false,
       });
+      if (unmountedRef.current || requestId !== requestIdRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      if (sessionRef.current) {
+        sessionRef.current.destroy();
+        sessionRef.current = null;
+      }
       const session = new PeerRoomSession({
         stream,
         deviceId,
@@ -88,6 +101,8 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
     } catch (error) {
       console.error(`Could not ${role === "host" ? "create" : "join"} room:`, error);
       setJoinStatus(getCameraPermissionMessage(error));
+    } finally {
+      pendingRef.current = false;
     }
   };
 
@@ -119,6 +134,7 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
   };
 
   const leaveRoom = () => {
+    requestIdRef.current += 1;
     clearRejoinSession();
     setRoomCode("");
     sessionRef.current?.destroy();
@@ -162,7 +178,9 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
   // since such a page can resume with its session intact. The unload teardown
   // also stops the local tracks so the camera light goes out immediately.
   useEffect(() => {
+    unmountedRef.current = false;
     const teardown = (options) => {
+      requestIdRef.current += 1;
       sessionRef.current?.destroy(options);
       sessionRef.current = null;
     };
@@ -172,6 +190,7 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
     };
     window.addEventListener("pagehide", handlePageHide);
     return () => {
+      unmountedRef.current = true;
       window.removeEventListener("pagehide", handlePageHide);
       teardown();
     };
