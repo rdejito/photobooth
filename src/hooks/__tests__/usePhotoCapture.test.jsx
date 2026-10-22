@@ -9,19 +9,14 @@ vi.mock("../../rendering/PhotoRenderer.js", () => ({
 }));
 import { usePhotoCapture } from "../usePhotoCapture.js";
 
+// Mutable so a test can simulate the composition canvas vanishing mid-session.
+const fakeCanvas = { getContext: () => ({}) };
+const canvasRef = { current: fakeCanvas };
+
 function CaptureHarness() {
   const capture = usePhotoCapture({
     getVideoElements: getVideoElementsMock,
-    canvasRef: {
-      current: {
-        getContext: () => ({
-          clearRect: () => {},
-          fillRect: () => {},
-          drawImage: () => {},
-        }),
-        toDataURL: () => "data:image/png;base64,burst-shot",
-      },
-    },
+    canvasRef,
     addPhoto: () => ({ id: "saved" }),
     setCallStatus: () => {},
     canCapture: true,
@@ -84,6 +79,7 @@ function CaptureHarness() {
 describe("usePhotoCapture", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    canvasRef.current = fakeCanvas;
     broadcastCountdownMock.mockClear();
     getVideoElementsMock.mockReturnValue([
       { video: { videoWidth: 320, videoHeight: 240, readyState: 4 }, label: "A" },
@@ -201,6 +197,24 @@ describe("usePhotoCapture", () => {
     expect(screen.getByTestId("pending")).toHaveTextContent("false");
     expect(screen.getByTestId("customize")).toHaveTextContent("false");
     expect(screen.getByTestId("shot")).toHaveTextContent("0");
+  });
+
+  it("lets the host take another photo after the canvas goes missing", async () => {
+    render(<CaptureHarness />);
+    canvasRef.current = null;
+    await act(async () => {
+      screen.getByRole("button", { name: "take-photo" }).click();
+      await vi.advanceTimersByTimeAsync(30000);
+    });
+    canvasRef.current = fakeCanvas;
+    await act(async () => {
+      screen.getByRole("button", { name: "take-photo" }).click();
+    });
+    expect(screen.getByTestId("pending")).toHaveTextContent("true");
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30000);
+    });
+    expect(renderPhotoMock).toHaveBeenCalledOnce();
   });
 
   it("shows a guest the host's live preview, then the saved photo, without letting them customize", async () => {

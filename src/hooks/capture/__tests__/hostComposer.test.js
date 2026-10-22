@@ -78,6 +78,17 @@ describe("completeCapture", () => {
     expect(session.abortCapture).toHaveBeenCalledOnce();
     expect(session.broadcastPhoto).not.toHaveBeenCalled();
   });
+
+  it("releases the sequence after a missing-canvas abort so the host can retry", async () => {
+    composePhotoMock.mockResolvedValue({ error: "missing-canvas" });
+    const session = makeSession();
+    expect(session.sequence.inProgress).toBe(true);
+
+    await completeCapture(session, []);
+
+    expect(session.abortCapture).toHaveBeenCalledOnce();
+    expect(session.sequence.inProgress).toBe(false);
+  });
 });
 
 describe("recomposePhoto", () => {

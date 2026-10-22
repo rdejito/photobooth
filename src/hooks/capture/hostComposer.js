@@ -36,6 +36,7 @@ export async function completeCapture(session, shots) {
     });
     if (result.error) {
       if (result.error === "missing-canvas") {
+        sequence.inProgress = false;
         abortCapture("Couldn't take photo — canvas not ready, try again.");
         return;
       }
