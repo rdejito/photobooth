@@ -30,6 +30,77 @@ function receivePhoto(transfer, photo = {}) {
   });
 }
 
+describe("PhotoTransfer sending", () => {
+  function createWire(peer = "guest-1") {
+    return {
+      peer,
+      sent: [],
+      send(message) {
+        this.sent.push(message);
+      },
+    };
+  }
+
+  it("reassembles a photo that spans multiple chunks with its metadata", () => {
+    const wire = createWire();
+    const sender = new PhotoTransfer({ onPhoto: vi.fn(), onHostPhoto: vi.fn() });
+    const dataUrl = `data:image/png;base64,${"A".repeat(12500)}`;
+
+    sender.send(wire, {
+      id: "photo-1",
+      frame: "classic",
+      layout: "grid-2x2",
+      captureId: "capture-1",
+      revision: 2,
+      preview: true,
+      eventName: "Emma's birthday",
+      dataUrl,
+    });
+
+    expect(wire.sent[0]).toMatchObject({
+      type: "photo-start",
+      id: "photo-1",
+      total: 2,
+      frame: "classic",
+      layout: "grid-2x2",
+      captureId: "capture-1",
+      revision: 2,
+      preview: true,
+      eventName: "Emma's birthday",
+    });
+    expect(wire.sent).toHaveLength(3);
+
+    const { transfer, onPhoto } = createTransfer();
+    for (const message of wire.sent) transfer.receive({ peer: "host" }, message);
+
+    expect(onPhoto).toHaveBeenCalledWith({
+      id: "photo-1",
+      frame: "classic",
+      layout: "grid-2x2",
+      captureId: "capture-1",
+      revision: 2,
+      preview: true,
+      eventName: "Emma's birthday",
+      dataUrl,
+    });
+  });
+
+  it("refuses to send a photo over the 4 MB limit", () => {
+    const wire = createWire();
+    const sender = new PhotoTransfer({ onPhoto: vi.fn(), onHostPhoto: vi.fn() });
+
+    expect(() =>
+      sender.send(wire, {
+        id: "photo-1",
+        frame: "classic",
+        layout: "single-horizontal",
+        dataUrl: `data:image/png;base64,${"A".repeat(4 * 1024 * 1024)}`,
+      }),
+    ).toThrow(/too large to share/);
+    expect(wire.sent).toHaveLength(0);
+  });
+});
+
 describe("PhotoTransfer wire validation", () => {
   it("delivers a photo with a known frame and layout", () => {
     const { transfer, onPhoto } = createTransfer();
@@ -51,6 +122,29 @@ describe("PhotoTransfer wire validation", () => {
 
     expect(onPhoto).not.toHaveBeenCalled();
     expect(onHostPhoto).not.toHaveBeenCalled();
+  });
+
+  it("drops a photo-start whose id is not a non-empty string", () => {
+    for (const id of [undefined, "", 42]) {
+      const { transfer, onPhoto, onHostPhoto } = createTransfer();
+
+      transfer.receive(connection, {
+        type: "photo-start",
+        id,
+        frame: "classic",
+        layout: "single-horizontal",
+        total: 1,
+      });
+      transfer.receive(connection, {
+        type: "photo-chunk",
+        id,
+        index: 0,
+        data: "data:image/png;base64,AA",
+      });
+
+      expect(onPhoto).not.toHaveBeenCalled();
+      expect(onHostPhoto).not.toHaveBeenCalled();
+    }
   });
 
   it("drops a payload that is not an image data URL", () => {

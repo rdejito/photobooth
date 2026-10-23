@@ -37,6 +37,69 @@ function renderPanel(overrides = {}) {
   return render(<BoothPage {...defaultProps} {...overrides} />);
 }
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+describe("PhotoPreview dismissal and actions", () => {
+  const previewProps = {
+    canvasRef: { current: null },
+    imageData: "data:image/png;base64,iVBORw0KGgo=",
+    visible: true,
+    canCustomize: false,
+    photoPending: false,
+    frame: "classic",
+    setFrame: () => {},
+    savePhoto: () => {},
+    hidePreview: () => {},
+  };
+
+  it("lets a guest dismiss the preview without the host's discard confirm", () => {
+    const hidePreview = vi.fn();
+    const confirmSpy = vi.spyOn(window, "confirm");
+    render(<PhotoPreview {...previewProps} hidePreview={hidePreview} />);
+
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape", code: "Escape" });
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(hidePreview).toHaveBeenCalled();
+    expect(
+      screen.queryByRole("button", { name: /save and share photo/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("closes a pending capture without warning, since there is nothing to lose", () => {
+    const hidePreview = vi.fn();
+    const confirmSpy = vi.spyOn(window, "confirm");
+    render(
+      <PhotoPreview
+        {...previewProps}
+        canCustomize
+        photoPending
+        hidePreview={hidePreview}
+      />,
+    );
+
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape", code: "Escape" });
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(hidePreview).toHaveBeenCalled();
+  });
+
+  it("downloads the current image under the shared filename", () => {
+    let downloaded;
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function click() {
+      downloaded = this;
+    });
+    render(<PhotoPreview {...previewProps} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /download photo/i }));
+
+    expect(downloaded.href).toBe(previewProps.imageData);
+    expect(downloaded.download).toMatch(/^little-moments-\d+\.png$/);
+  });
+});
+
 describe("PhotoPreview storage warning and disposal", () => {
   it("confirms before discarding an unsaved host photo with Esc or backdrop", () => {
     const hidePreview = vi.fn();

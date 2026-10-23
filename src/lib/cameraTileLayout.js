@@ -78,6 +78,10 @@ export function chooseColumns({
 /**
  * Fits camera aspect ratios into the stage with a shared tile height.
  *
+ * Tiles are laid out in equal-width grid tracks, so the shared height must also
+ * let each column's widest camera fit its track. A lone tile in a partial final
+ * row spans the whole grid, so it is limited by the full stage width instead.
+ *
  * @param {object} input
  * @param {number[]} input.ratios - width/height of each tile, in order.
  * @param {number} input.containerWidth - Available stage width in pixels.
@@ -102,6 +106,8 @@ export function computeTileBoxes({
   const rows = Math.ceil(count / cols);
   const width = Math.max(0, containerWidth);
   const height = Math.max(0, containerHeight);
+  const trackWidth = Math.max(0, width - gapX * (cols - 1)) / cols;
+  const trailingIndex = cols > 1 && count % cols === 1 ? count - 1 : -1;
 
   // The grid itself must fit the stage height; each row must fit the width.
   let tileHeight = rows > 0 ? Math.max(0, height - gapY * (rows - 1)) / rows : 0;
@@ -112,6 +118,14 @@ export function computeTileBoxes({
     const rowWidth = width - gapX * Math.max(0, rowRatios.length - 1);
     tileHeight = Math.min(tileHeight, Math.max(0, rowWidth) / rowRatio);
   }
+
+  // Equal tracks: each tile must also fit the column it occupies, except a
+  // trailing tile that spans the full grid width.
+  ratios.forEach((ratio, index) => {
+    if (ratio <= 0) return;
+    const limit = index === trailingIndex ? width : trackWidth;
+    tileHeight = Math.min(tileHeight, limit / ratio);
+  });
 
   return ratios.map((ratio) => ({
     width: tileHeight * (ratio > 0 ? ratio : 4 / 3),

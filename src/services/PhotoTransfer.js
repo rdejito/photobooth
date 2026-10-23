@@ -43,6 +43,8 @@ export class PhotoTransfer {
     const key = `${connection.peer}:${message.id}`;
     if (message.type === "photo-start") {
       if (
+        typeof message.id !== "string" ||
+        message.id.length === 0 ||
         !FRAME_IDS.includes(message.frame) ||
         !LAYOUT_KEYS.has(message.layout) ||
         !Number.isInteger(message.total) ||

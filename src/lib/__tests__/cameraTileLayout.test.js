@@ -141,6 +141,27 @@ describe("computeTileBoxes", () => {
     expect(new Set(boxes.map((box) => box.height)).size).toBe(1);
   });
 
+  it("keeps mixed-ratio tiles inside their equal grid tracks", () => {
+    const width = 1200;
+    const gapX = 24;
+    const [desktop, phone] = computeTileBoxes({
+      ratios: [16 / 9, 9 / 16],
+      containerWidth: width,
+      containerHeight: 400,
+      columns: 2,
+      gapX,
+    });
+
+    // The hook renders two minmax(0, 1fr) tracks; a tile wider than its track
+    // spills out of the stage even though the row's widths sum below the total.
+    const trackWidth = (width - gapX) / 2;
+    expect(desktop.width).toBeLessThanOrEqual(trackWidth + 1e-6);
+    expect(phone.width).toBeLessThanOrEqual(trackWidth + 1e-6);
+    expect(phone.height).toBeCloseTo(desktop.height, 6);
+    expect(desktop.width / desktop.height).toBeCloseTo(16 / 9, 6);
+    expect(phone.width / phone.height).toBeCloseTo(9 / 16, 6);
+  });
+
   it("limits wide groups by their widest row", () => {
     const boxes = computeTileBoxes({
       ratios: [16 / 9, 16 / 9],
