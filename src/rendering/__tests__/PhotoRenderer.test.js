@@ -150,24 +150,40 @@ describe("renderPhoto non-burst layouts", () => {
     expect(y).toBeCloseTo(36);
   });
 
-  it("aspect-fits each grid-2x2 tile around its tile centre", () => {
+  it("spaces the grid-2x2 tiles with equal margins and gaps", () => {
     const { canvas, context } = renderStandalone("grid-2x2");
 
     expect(canvas).toMatchObject({ width: 720, height: 696 });
     expect(context.drawImage).toHaveBeenCalledTimes(4);
 
-    // Each 720x696 base is height-limited to 324 inside a 336x324 tile.
-    const tileCentres = [
-      [196, 190],
-      [548, 190],
-      [196, 530],
-      [548, 530],
-    ];
-    context.drawImage.mock.calls.forEach(([, x, y, width, height], index) => {
-      expect(width).toBeCloseTo(335.1724);
-      expect(height).toBeCloseTo(324);
-      expect(x + width / 2).toBeCloseTo(tileCentres[index][0]);
-      expect(y + height / 2).toBeCloseTo(tileCentres[index][1]);
+    // Canvas 720x696 with a 28px inset and a 16px gap gives 324x312 tiles.
+    // Each 720x696 base is height-limited to 312, so it fills the tile
+    // vertically and is centred horizontally, making every drawn image's
+    // centre the centre of its tile.
+    const inset = 28;
+    const gap = 16;
+    const tileWidth = 324;
+    const tileHeight = 312;
+    const centres = context.drawImage.mock.calls.map(([, x, y, width, height]) => [
+      x + width / 2,
+      y + height / 2,
+    ]);
+
+    context.drawImage.mock.calls.forEach(([, , , width, height]) => {
+      expect(width).toBeCloseTo((720 * tileHeight) / 696);
+      expect(height).toBeCloseTo(tileHeight);
     });
+
+    centres.forEach(([x, y], index) => {
+      const column = index % 2;
+      const row = Math.floor(index / 2);
+      expect(x).toBeCloseTo(inset + tileWidth / 2 + column * (tileWidth + gap));
+      expect(y).toBeCloseTo(inset + tileHeight / 2 + row * (tileHeight + gap));
+    });
+
+    expect(centres[0][0] - tileWidth / 2).toBeCloseTo(inset);
+    expect(720 - (centres[1][0] + tileWidth / 2)).toBeCloseTo(inset);
+    expect(centres[0][1] - tileHeight / 2).toBeCloseTo(inset);
+    expect(696 - (centres[3][1] + tileHeight / 2)).toBeCloseTo(inset);
   });
 });

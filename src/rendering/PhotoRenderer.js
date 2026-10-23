@@ -79,8 +79,8 @@ function drawLayout({ context, canvas, baseCanvas, layout }) {
 
   if (layout === "grid-2x2") {
     const gap = 16;
-    const tileWidth = (width - gap * 3) / 2;
-    const tileHeight = (height - gap * 3) / 2;
+    const tileWidth = (width - defaultInset * 2 - gap) / 2;
+    const tileHeight = (height - defaultInset * 2 - gap) / 2;
     const positions = [
       [defaultInset, defaultInset],
       [defaultInset + tileWidth + gap, defaultInset],
