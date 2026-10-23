@@ -63,6 +63,7 @@ describe("handleGuestJoin", () => {
   it("turns a new guest away when the room is full without disturbing seats", () => {
     const session = createHostSession(["host", "a", "b", "c"]);
     const connection = createConnection("guest-1");
+    session.connections.set("guest-1", connection);
 
     const admitted = handleGuestJoin(session, connection, {
       type: "join",
@@ -71,6 +72,8 @@ describe("handleGuestJoin", () => {
 
     expect(admitted).toBe(false);
     expect(connection.send).toHaveBeenCalledWith({ type: "room-full" });
+    expect(connection.close).toHaveBeenCalledOnce();
+    expect(session.connections.has("guest-1")).toBe(false);
     expect(session.members).toEqual(["host", "a", "b", "c"]);
     expect(session.publishParticipants).not.toHaveBeenCalled();
   });

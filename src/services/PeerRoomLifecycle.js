@@ -58,7 +58,9 @@ export function removeMemberFromRoom(session, peerId, broadcastRoster) {
   session.markPeerConnected(peerId);
   session.members = session.members.filter((id) => id !== peerId);
   session.photoTransfer?.removePeer?.(peerId);
+  const connection = session.connections.get(peerId);
   session.connections.delete(peerId);
+  connection?.close();
   session.cameraStates.delete(peerId);
   session.calls.get(peerId)?.close();
   session.removeCall(peerId);
@@ -148,6 +150,8 @@ export function handleGuestJoin(session, connection, message) {
   if (!existing && !verifiedId && session.members.length >= MAX_PARTICIPANTS) {
     connection.send({ type: "room-full" });
     session.onStatus("This room is full. The limit is four participants.");
+    session.connections.delete(connection.peer);
+    connection.close();
     return false;
   }
 

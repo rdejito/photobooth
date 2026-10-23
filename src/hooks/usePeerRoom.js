@@ -67,9 +67,11 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
         onPhoto,
         onCountdown,
         onRoomFull: () => {
+          if (sessionRef.current !== session) return;
           onCountdown(null);
-          sessionRef.current?.destroy();
           sessionRef.current = null;
+          session.destroy();
+          clearRejoinSession();
           setStage("join");
           setParticipants([]);
           setJoinStatus("This room is full. The limit is four participants.");
@@ -111,7 +113,8 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
   };
 
   const createRoom = (roomInput, setRoomInput) => {
-    const room = normalizeRoomCode(roomInput || Math.random().toString(36).slice(2, 7));
+    const room = normalizeRoomCode(roomInput) ||
+      normalizeRoomCode(Math.random().toString(36).slice(2, 7));
     setRoomInput(room);
     setRoomCode(room);
     setCallStatus(`Opening photobooth "${room}"...`);

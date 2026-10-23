@@ -142,6 +142,45 @@ describe("usePeerRoom rejoin persistence", () => {
     expect(destroyMock).toHaveBeenCalled();
   });
 
+  it("clears the saved room when the room is full", async () => {
+    render(<Harness />);
+    await act(async () => {
+      fireEvent.click(screen.getByText("join-room"));
+    });
+    expect(readRejoinSession()).not.toBeNull();
+
+    await act(() => {
+      sessionRef.current.options.onRoomFull();
+    });
+
+    expect(readRejoinSession()).toBeNull();
+    expect(destroyMock).toHaveBeenCalled();
+  });
+
+  it("ignores a late room-full from a session that was replaced", async () => {
+    render(<Harness />);
+    await act(async () => {
+      fireEvent.click(screen.getByText("join-room"));
+    });
+    const staleOptions = sessionRef.current.options;
+
+    await act(async () => {
+      fireEvent.click(screen.getByText("leave-room"));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByText("join-room"));
+    });
+    destroyMock.mockClear();
+
+    await act(() => {
+      staleOptions.onRoomFull();
+    });
+
+    expect(destroyMock).not.toHaveBeenCalled();
+    expect(readRejoinSession()).not.toBeNull();
+    expect(screen.getByTestId("room-code").textContent).toBe("WXYZ");
+  });
+
   it("clears the saved room when the room closes", async () => {
     render(<Harness />);
     await act(async () => {

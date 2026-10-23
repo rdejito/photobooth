@@ -143,11 +143,13 @@ export class PeerRoomSession {
       call.close();
       return;
     }
-    if (!this.calls.has(call.peer)) this.attachCall(call);
+    this.attachCall(call);
     call.answer(this.stream);
   }
 
   attachCall(call) {
+    const existingCall = this.calls.get(call.peer);
+    if (existingCall && existingCall !== call) existingCall.close();
     this.calls.set(call.peer, call);
     call.on("stream", (stream) => {
       this.remoteStreams.set(call.peer, stream);
@@ -160,7 +162,10 @@ export class PeerRoomSession {
     // the error itself as a disconnect would only risk acting on a transient
     // negotiation failure. Unhandled `error` events are safe to omit because
     // PeerJS uses eventemitter3, which does not throw on them.
-    call.on("close", () => this.handlePeerDisconnected(call.peer));
+    call.on("close", () => {
+      if (this.calls.get(call.peer) !== call) return;
+      this.handlePeerDisconnected(call.peer);
+    });
   }
 
   publishParticipants() {

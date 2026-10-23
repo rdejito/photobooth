@@ -52,6 +52,19 @@ describe("PeerRoomSession teardown", () => {
     expect(guestA.send).toHaveBeenCalledWith({ type: "room-closed" });
     expect(guestB.send).toHaveBeenCalledWith({ type: "room-closed" });
   });
+
+  it("closes a removed member's data connection", () => {
+    const { stream } = createLocalStream();
+    const { session } = createSession({ localStream: stream, isHost: true });
+    session.members = ["host", "guest-1"];
+    const connection = createConnection("guest-1");
+    session.connections.set("guest-1", connection);
+
+    session.removeMember("guest-1");
+
+    expect(connection.close).toHaveBeenCalledOnce();
+    expect(session.connections.has("guest-1")).toBe(false);
+  });
 });
 
 describe("PeerRoomSession disconnect grace period", () => {

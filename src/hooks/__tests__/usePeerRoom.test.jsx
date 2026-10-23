@@ -29,6 +29,9 @@ function Harness() {
       <button type="button" onClick={() => room.createRoom("ABCD", () => {})}>
         create-room
       </button>
+      <button type="button" onClick={() => room.createRoom("---", () => {})}>
+        create-odd-room
+      </button>
       <button type="button" onClick={() => room.joinRoom("WXYZ")}>
         join-room
       </button>
@@ -86,6 +89,34 @@ describe("usePeerRoom page unload teardown", () => {
     fireEvent(window, event);
 
     expect(destroyMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("usePeerRoom room creation", () => {
+  beforeEach(() => {
+    destroyMock.mockClear();
+    startHostMock.mockClear();
+    sessionRef.current = null;
+    Object.defineProperty(window.navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: vi.fn().mockResolvedValue(streamMock) },
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("falls back to a usable random code when the input normalizes to nothing", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.123456789);
+    render(<Harness />);
+    await act(async () => {
+      fireEvent.click(screen.getByText("create-odd-room"));
+    });
+
+    const [room] = startHostMock.mock.calls.at(-1);
+    expect(room).toMatch(/^[A-Z0-9]+$/);
+    expect(screen.getByTestId("room-code").textContent).toBe(room);
   });
 });
 
