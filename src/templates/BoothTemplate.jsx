@@ -50,6 +50,7 @@ export default function BoothTemplate({
   canCustomizePreview,
   photoPending,
   photoDataUrl,
+  galleryStatus,
   takePhoto,
   savePhoto,
   leaveRoom,
@@ -129,6 +130,7 @@ export default function BoothTemplate({
         setEventName={setEventName}
         savePhoto={savePhoto}
         hidePreview={hidePreview}
+        galleryStatus={galleryStatus}
       />
       <GalleryDialog
         open={showGallery}

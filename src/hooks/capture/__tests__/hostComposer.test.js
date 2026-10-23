@@ -35,12 +35,21 @@ function makeSession(overrides = {}) {
     sourceBurstParticipantsRef: { current: [] },
     captureIdRef: { current: null },
     photoRevisionRef: { current: 0 },
+    recomposeRequestRef: { current: 0 },
     photoSavedRef: { current: false },
     canCustomizePreview: true,
     photoDataUrl: "data:image/png;base64,composed",
     ...overrides,
   };
   return session;
+}
+
+function deferred() {
+  let resolve;
+  const promise = new Promise((next) => {
+    resolve = next;
+  });
+  return { promise, resolve };
 }
 
 describe("completeCapture", () => {
@@ -124,6 +133,47 @@ describe("recomposePhoto", () => {
 
     expect(composePhotoMock).not.toHaveBeenCalled();
     expect(session.broadcastPhoto).not.toHaveBeenCalled();
+  });
+
+  it("drops a slow earlier recomposition after a later choice", async () => {
+    const slow = deferred();
+    const fast = deferred();
+    composePhotoMock
+      .mockReturnValueOnce(slow.promise)
+      .mockReturnValueOnce(fast.promise);
+    const session = makeSession({
+      sourceParticipantsRef: { current: [{ video: {}, label: "A" }] },
+      captureIdRef: { current: "cap" },
+    });
+    session.setSelectedFrame = vi.fn((value) => { session.frame = value; });
+    session.setSelectedLayout = vi.fn((value) => { session.layout = value; });
+
+    const slowRequest = recomposePhoto(session, {
+      nextFrame: "polaroid",
+      logLabel: "x",
+      failStatus: "y",
+    });
+    const fastRequest = recomposePhoto(session, {
+      nextLayout: "grid-2x2",
+      logLabel: "x",
+      failStatus: "y",
+    });
+    fast.resolve({ dataUrl: "data:image/png;base64,fast" });
+    await fastRequest;
+    slow.resolve({ dataUrl: "data:image/png;base64,slow" });
+    await slowRequest;
+
+    expect(session.setSelectedFrame).not.toHaveBeenCalled();
+    expect(session.setSelectedLayout).toHaveBeenCalledWith("grid-2x2");
+    expect(session.setPhotoDataUrl).toHaveBeenCalledOnce();
+    expect(session.setPhotoDataUrl).toHaveBeenCalledWith("data:image/png;base64,fast");
+    expect(session.broadcastPhoto).toHaveBeenCalledOnce();
+    expect(session.broadcastPhoto.mock.calls[0][0]).toMatchObject({
+      revision: 1,
+      dataUrl: "data:image/png;base64,fast",
+      frame: "classic",
+      layout: "grid-2x2",
+    });
   });
 });
 

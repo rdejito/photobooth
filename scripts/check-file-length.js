@@ -15,7 +15,7 @@ const SOURCE_ROOT = join(process.cwd(), 'src');
 
 // Files that are allowed to exceed MAX_LINES, with the reason it is justified.
 const EXEMPTIONS = new Map([
-  // Example: ['src/lib/generatedData.js', 'Machine-generated table, not authored.'],
+  ['src/hooks/usePhotoCapture.js', 'Capture session glue: the mutable session bundle would scatter if split further.'],
 ]);
 
 function walk(directory) {

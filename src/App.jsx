@@ -28,7 +28,7 @@ export default function App() {
     onCountdown: (value, meta) =>
       photoCallbacksRef.current.receiveCountdown?.(value, meta),
   });
-  const { gallery, addPhoto, deletePhoto } = usePhotoGallery();
+  const { gallery, addPhoto, deletePhoto, storageStatus } = usePhotoGallery();
 
   // A photo can only be taken when the host's camera is on and every
   // participant has a ready stream.
@@ -161,6 +161,7 @@ export default function App() {
           canCustomizePreview={capture.canCustomizePreview}
           photoPending={capture.photoPending}
           photoDataUrl={capture.photoDataUrl}
+          galleryStatus={storageStatus}
           takePhoto={capture.takePhoto}
           savePhoto={capture.savePhoto}
           leaveRoom={leaveCall}

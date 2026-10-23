@@ -83,6 +83,7 @@ export async function recomposePhoto(session, { nextFrame, nextLayout, logLabel,
     canCustomizePreview, photoDataUrl, setCallStatus, setPhotoDataUrl,
     setSelectedFrame, setSelectedLayout, sourceParticipantsRef,
     sourceBurstParticipantsRef, captureIdRef, photoRevisionRef,
+    recomposeRequestRef,
   } = session;
 
   const hasSource =
@@ -95,6 +96,7 @@ export async function recomposePhoto(session, { nextFrame, nextLayout, logLabel,
   ) {
     return;
   }
+  const requestId = (recomposeRequestRef.current += 1);
   try {
     const result = await composePhoto(canvasRef, {
       participants: sourceParticipantsRef.current,
@@ -105,6 +107,7 @@ export async function recomposePhoto(session, { nextFrame, nextLayout, logLabel,
       layout: nextLayout || layout,
       frameOptions: { eventName: eventNameRef.current },
     });
+    if (requestId !== recomposeRequestRef.current) return;
     if (result.error) {
       if (result.error === "missing-canvas") {
         setCallStatus("Couldn't update the photo — canvas not ready, try again.");
@@ -127,6 +130,7 @@ export async function recomposePhoto(session, { nextFrame, nextLayout, logLabel,
       eventName: eventNameRef.current,
     });
   } catch (error) {
+    if (requestId !== recomposeRequestRef.current) return;
     console.error(logLabel, error);
     setCallStatus(failStatus);
   }

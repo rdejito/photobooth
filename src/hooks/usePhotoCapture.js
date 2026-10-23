@@ -58,6 +58,7 @@ export function usePhotoCapture({
   const photoSavedRef = useRef(false);
   const captureIdRef = useRef(null);
   const photoRevisionRef = useRef(0);
+  const recomposeRequestRef = useRef(0);
   const receivedPhotoRef = useRef(null);
 
   // The burst controller is created once and re-bound each render so its
@@ -139,6 +140,7 @@ export function usePhotoCapture({
     sourceBurstParticipantsRef,
     captureIdRef,
     photoRevisionRef,
+    recomposeRequestRef,
     photoSavedRef,
     receivedPhotoRef,
     triggerFlash,

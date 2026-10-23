@@ -30,6 +30,7 @@ const defaultProps = {
   savePhoto: () => {},
   leaveRoom: () => {},
   hidePreview: () => {},
+  galleryStatus: "",
   gallery: [],
   showGallery: false,
   setShowGallery: () => {},

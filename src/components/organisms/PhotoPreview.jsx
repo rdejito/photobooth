@@ -42,6 +42,7 @@ import {
  * @param {(value: string) => void} [props.setEventName] - Updates the name.
  * @param {() => void} props.savePhoto - Saves the composed photo.
  * @param {() => void} props.hidePreview - Closes the dialog.
+ * @param {string} [props.galleryStatus] - Storage warning shown under the photo.
  */
 export default function PhotoPreview({
   canvasRef,
@@ -57,10 +58,24 @@ export default function PhotoPreview({
   setEventName = () => {},
   savePhoto,
   hidePreview,
+  galleryStatus = "",
 }) {
   const download = () => {
     if (!imageData || photoPending) return;
     downloadDataUrl(imageData, littleMomentsFilename(Date.now()));
+  };
+
+  const requestClose = (event, reason) => {
+    if (canCustomize && !photoPending) {
+      const confirmed = window.confirm(
+        "Discard this photo? You haven't saved it yet.",
+      );
+      if (!confirmed) {
+        event?.preventDefault?.();
+        return;
+      }
+    }
+    hidePreview();
   };
 
   return (
@@ -68,7 +83,7 @@ export default function PhotoPreview({
       <canvas ref={canvasRef} hidden />
       <Dialog
         open={visible}
-        onClose={hidePreview}
+        onClose={requestClose}
         maxWidth={false}
         scroll="paper"
         sx={photoPreviewDialogStyles}
@@ -115,12 +130,16 @@ export default function PhotoPreview({
                 </ActionButton>
               )}
             </Box>
-            <Typography sx={photoPreviewCaptionStyles}>
-              {canCustomize
-                ? "Choose the frame and layout, then save your finished photo to the snapshots."
-                : photoPending
-                  ? "The host is taking four shots, then choosing the frame and layout. The finished photo will appear in your snapshots."
-                  : "Saved to your snapshots"}
+            <Typography
+              role={galleryStatus ? "status" : undefined}
+              sx={photoPreviewCaptionStyles}
+            >
+              {galleryStatus ||
+                (canCustomize
+                  ? "Choose the frame and layout, then save your finished photo to the snapshots."
+                  : photoPending
+                    ? "The host is taking four shots, then choosing the frame and layout. The finished photo will appear in your snapshots."
+                    : "Saved to your snapshots")}
             </Typography>
           </Box>
         </DialogContent>
