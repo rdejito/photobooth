@@ -38,6 +38,24 @@ export function getFrameRenderer(frameKey) {
   return FRAME_RENDERERS[frameKey] || renderNone;
 }
 
+/**
+ * Draws `source` inside `box` at its native aspect ratio, centred, so a layout
+ * never stretches the rendered frame to fill a differently-shaped target.
+ */
+function drawAspectFit(context, source, box) {
+  const scale = Math.min(box.width / source.width, box.height / source.height);
+  const width = source.width * scale;
+  const height = source.height * scale;
+
+  context.drawImage(
+    source,
+    box.x + (box.width - width) / 2,
+    box.y + (box.height - height) / 2,
+    width,
+    height,
+  );
+}
+
 function drawLayout({ context, canvas, baseCanvas, layout }) {
   const defaultInset = 28;
   const width = canvas.width;
@@ -50,13 +68,12 @@ function drawLayout({ context, canvas, baseCanvas, layout }) {
   if (layout === "single-vertical") {
     const innerWidth = Math.min(width - defaultInset * 2, width * 0.72);
     const innerHeight = height - defaultInset * 2;
-    context.drawImage(
-      baseCanvas,
-      (width - innerWidth) / 2,
-      (height - innerHeight) / 2,
-      innerWidth,
-      innerHeight,
-    );
+    drawAspectFit(context, baseCanvas, {
+      x: (width - innerWidth) / 2,
+      y: (height - innerHeight) / 2,
+      width: innerWidth,
+      height: innerHeight,
+    });
     return;
   }
 
@@ -72,20 +89,24 @@ function drawLayout({ context, canvas, baseCanvas, layout }) {
     ];
 
     positions.forEach(([x, y]) => {
-      context.drawImage(baseCanvas, x, y, tileWidth, tileHeight);
+      drawAspectFit(context, baseCanvas, {
+        x,
+        y,
+        width: tileWidth,
+        height: tileHeight,
+      });
     });
     return;
   }
 
   const horizontalInset = 32;
   const horizontalHeight = Math.min(height - horizontalInset * 2, height * 0.8);
-  context.drawImage(
-    baseCanvas,
-    horizontalInset,
-    (height - horizontalHeight) / 2,
-    width - horizontalInset * 2,
-    horizontalHeight,
-  );
+  drawAspectFit(context, baseCanvas, {
+    x: horizontalInset,
+    y: (height - horizontalHeight) / 2,
+    width: width - horizontalInset * 2,
+    height: horizontalHeight,
+  });
 }
 
 const JPEG_FRAMES = new Set(FRAME_IDS);
