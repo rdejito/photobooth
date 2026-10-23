@@ -22,7 +22,13 @@ function FrameOption({ frameKey, label, selected, onSelect, compact }) {
   const [thumbnail, setThumbnail] = useState("");
 
   useEffect(() => {
-    setThumbnail(getFrameThumbnail(frameKey));
+    let active = true;
+    getFrameThumbnail(frameKey).then((dataUrl) => {
+      if (active) setThumbnail(dataUrl);
+    });
+    return () => {
+      active = false;
+    };
   }, [frameKey]);
 
   return (
