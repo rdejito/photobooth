@@ -18,12 +18,18 @@ import { galleryPanelStyles } from "../../theme/styles/galleryPanel.js";
 export default function GalleryPanel({ gallery, downloadPhoto, deletePhoto, onClose }) {
   return (
     <Box sx={galleryPanelStyles.wrapper}>
-      <DialogTitle component="header" sx={galleryPanelStyles.header}>
+      {/* MUI copies the dialog's aria-labelledby onto DialogTitle, so give the
+          header a distinct id; the h2 below is the dialog's accessible name. */}
+      <DialogTitle
+        component="header"
+        id="snapshots-header"
+        sx={galleryPanelStyles.header}
+      >
         <Box>
           <Typography component="p" sx={galleryPanelStyles.kicker}>
             LITTLE MOMENTS, KEPT
           </Typography>
-          <Typography component="h2" sx={galleryPanelStyles.title}>
+          <Typography component="h2" sx={galleryPanelStyles.title} id="snapshots-title">
             Your snapshots
           </Typography>
         </Box>
