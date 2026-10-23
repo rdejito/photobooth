@@ -13,6 +13,7 @@ import {
   resolveFrameLabels,
   seededNoise,
 } from "./shared.js";
+import { frameBorderWidth } from "../../lib/constants.js";
 
 const TABLE = "#CFCBBE";
 const STRIP = "#141414";
@@ -185,7 +186,7 @@ export function renderFilm(canvas, context, participants, options = {}) {
     drawSlotPhoto(context, slot, frames[index], {
       label: `PHOTO ${index + 1}`,
       borderColor: "#F5F0E6",
-      borderWidth: 6,
+      borderWidth: frameBorderWidth("film"),
       placeholderFill: "#2A2A2A",
       placeholderInk: "#8F8A80",
       labelColor: "#B9B2A4",

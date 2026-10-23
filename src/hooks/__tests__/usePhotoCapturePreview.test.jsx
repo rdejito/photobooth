@@ -153,6 +153,20 @@ describe("usePhotoCapture preview dismissal", () => {
     expect(clearCalls()).toHaveLength(0);
   });
 
+  it("releases the burst snapshots when the host dismisses the preview", async () => {
+    render(<Harness />);
+    await captureBurst();
+    const [{ burstShots }] = renderPhotoMock.mock.calls[0];
+
+    await act(async () => {
+      screen.getByRole("button", { name: "hide-preview" }).click();
+    });
+
+    expect(
+      burstShots.flat().map(({ video }) => [video.width, video.height]),
+    ).toEqual(Array.from({ length: 8 }, () => [0, 0]));
+  });
+
   it("closes a guest preview when the host's clear arrives", async () => {
     render(<Harness />);
 

@@ -25,6 +25,35 @@ describe("camera crop indicator", () => {
     expect(guide).toHaveStyle({ left: "31.25%", width: "37.5%" });
   });
 
+  it("matches the selected frame's border inset", () => {
+    const { rerender } = render(
+      <VideoPreview
+        stream={createStream(640, 480)}
+        label="Ada"
+        participantCount={1}
+        layout="single-horizontal"
+        frame="classic"
+      />,
+    );
+
+    const guide = screen.getByTestId("camera-crop-guide");
+    expect(parseFloat(guide.style.top)).toBeCloseTo(4.4118, 3);
+    expect(parseFloat(guide.style.height)).toBeCloseTo(91.1765, 3);
+
+    rerender(
+      <VideoPreview
+        stream={createStream(640, 480)}
+        label="Ada"
+        participantCount={1}
+        layout="single-horizontal"
+        frame="polaroid"
+      />,
+    );
+
+    expect(parseFloat(guide.style.top)).toBeCloseTo(3.8095, 3);
+    expect(parseFloat(guide.style.height)).toBeCloseTo(92.381, 3);
+  });
+
   it("hides the guide when the camera is off", () => {
     render(
       <VideoPreview

@@ -111,6 +111,12 @@ function drawLayout({ context, canvas, baseCanvas, layout }) {
 
 const JPEG_FRAMES = new Set(FRAME_IDS);
 
+/** Drops a canvas's backing store so a large composed image can be reclaimed. */
+function releaseCanvas(canvas) {
+  canvas.width = 0;
+  canvas.height = 0;
+}
+
 function encodeCanvas(canvas, frameKey) {
   // The frames ship large, dense artwork; JPEG keeps them inside
   // PhotoTransfer's 4 MB limit and the localStorage gallery budget.
@@ -139,8 +145,12 @@ export function renderPhoto({
     const groupShots = burstShots.map((shotParticipants) =>
       composeGroupShot(shotParticipants),
     );
-    renderer(canvas, context, [], { ...options, groupShots });
-    return encodeCanvas(canvas, frame);
+    try {
+      renderer(canvas, context, [], { ...options, groupShots });
+      return encodeCanvas(canvas, frame);
+    } finally {
+      groupShots.forEach(releaseCanvas);
+    }
   }
 
   const baseCanvas = document.createElement("canvas");

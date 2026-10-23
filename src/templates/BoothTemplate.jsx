@@ -96,6 +96,7 @@ export default function BoothTemplate({
           shotNumber={shotNumber}
           totalShots={totalShots}
           layout={layout}
+          frame={frame}
         />
         <PhotoControls
           isHost={isHost}

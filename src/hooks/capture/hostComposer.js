@@ -9,6 +9,7 @@
  */
 import { composePhoto } from "./photoComposer.js";
 import { publishPhotoMessage } from "./previewPublisher.js";
+import { releaseSnapshotCanvases } from "./captureSequence.js";
 
 /**
  * Composes the finished burst into the preview dialog and broadcasts it as the
@@ -162,6 +163,7 @@ export function saveCapturedPhoto(session) {
     eventName: eventNameRef.current,
   });
   photoSavedRef.current = true;
+  releaseSnapshotCanvases(sourceBurstParticipantsRef.current);
   sourceParticipantsRef.current = [];
   sourceBurstParticipantsRef.current = [];
   setCanCustomizePreview(false);

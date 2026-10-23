@@ -11,6 +11,7 @@ import {
   normalizeParticipants,
   resolveFrameLabels,
 } from "./shared.js";
+import { frameBorderWidth } from "../../lib/constants.js";
 
 const DESK_TOP = "#e8ded1";
 const DESK_BOTTOM = "#cfc0b2";
@@ -78,7 +79,7 @@ export function renderPolaroid(canvas, context, participants, options = {}) {
     drawSlotPhoto(context, slot, frames[index], {
       label: `PHOTO ${index + 1}`,
       borderColor: "#f5eee3",
-      borderWidth: 3,
+      borderWidth: frameBorderWidth("polaroid"),
       borderRadius: 4,
       placeholderFill: "#e8ddcc",
       placeholderInk: "#a58d79",

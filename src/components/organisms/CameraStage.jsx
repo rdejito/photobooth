@@ -22,6 +22,7 @@ import { cameraStageStyles } from "../../theme/styles/cameraStage.js";
  * @param {number} props.shotNumber - Current burst shot (for the label).
  * @param {number} props.totalShots - Total burst length.
  * @param {string} [props.layout] - Selected frame layout, for the crop guides.
+ * @param {string} [props.frame] - Selected frame key, for the crop guides.
  */
 export default function CameraStage({
   participants,
@@ -32,6 +33,7 @@ export default function CameraStage({
   shotNumber,
   totalShots,
   layout = "single-horizontal",
+  frame = "classic",
 }) {
   const videoGroupRef = useRef(null);
   useCameraTileSizing(videoGroupRef, participants.length);
@@ -64,6 +66,7 @@ export default function CameraStage({
             participantCount={participants.length}
             participantIndex={index}
             layout={layout}
+            frame={frame}
           />
         ))}
       </Box>

@@ -4,6 +4,7 @@ import Typography from "@mui/material/Typography";
 import StatusDot from "../atoms/StatusDot.jsx";
 import CropGuide from "../atoms/CropGuide.jsx";
 import { cameraCropRegion, ensureVisibleRegion } from "../../rendering/cropGuide.js";
+import { frameBorderWidth } from "../../lib/constants.js";
 import { videoPreviewStyles } from "../../theme/styles/videoPreview.js";
 
 /** The smallest fractional guide size kept legible on extreme aspect ratios. */
@@ -32,6 +33,7 @@ function readStreamSize(stream) {
  * @param {number} [props.participantCount] - Size of the group in the photo.
  * @param {number} [props.participantIndex] - This participant's tile position.
  * @param {string} [props.layout] - Selected frame layout key.
+ * @param {string} [props.frame] - Selected frame key, for its slot border inset.
  */
 export default function VideoPreview({
   videoRef,
@@ -43,6 +45,7 @@ export default function VideoPreview({
   participantCount = 1,
   participantIndex = 0,
   layout = "single-horizontal",
+  frame = "classic",
 }) {
   const elementRef = useRef(null);
   const [videoSize, setVideoSize] = useState(() => readStreamSize(stream));
@@ -77,6 +80,7 @@ export default function VideoPreview({
         participantCount,
         participantIndex,
         layout,
+        borderWidth: frameBorderWidth(frame),
       }),
       MIN_GUIDE_FRACTION,
     );
@@ -87,6 +91,7 @@ export default function VideoPreview({
     participantCount,
     participantIndex,
     layout,
+    frame,
   ]);
 
   return (

@@ -20,6 +20,7 @@ import {
   resolveFrameLabels,
   drawSparkle,
 } from "../shared.js";
+import { frameBorderWidth } from "../../../lib/constants.js";
 import { POP_PALETTES } from "./palettes.js";
 import { drawEmblem, drawFilmHoles, drawPattern, drawStarburst } from "./ornaments.js";
 import { drawAssignments, drawTitle } from "./copy.js";
@@ -94,7 +95,7 @@ export function renderPopTheme(themeKey, canvas, context, participants, options 
     drawSlotPhoto(context, slot, frames[index], {
       label: `PHOTO ${index + 1}`,
       borderColor: palette.slotBorder,
-      borderWidth: 4,
+      borderWidth: frameBorderWidth(themeKey),
       placeholderFill: "#d9dbe0",
       placeholderInk: "#8b919c",
       labelColor: "#6d7380",

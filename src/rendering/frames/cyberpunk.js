@@ -11,6 +11,7 @@ import {
   normalizeParticipants,
   resolveFrameLabels,
 } from "./shared.js";
+import { frameBorderWidth } from "../../lib/constants.js";
 
 const BG = "#0A0A18";
 const CYAN = "#00F0FF";
@@ -169,7 +170,7 @@ export function renderCyberpunk(canvas, context, participants, options = {}) {
     drawSlotPhoto(context, slot, frames[index], {
       label: `PHOTO ${index + 1}`,
       borderColor: "#0E1630",
-      borderWidth: 4,
+      borderWidth: frameBorderWidth("cyberpunk"),
       placeholderFill: "#101A2E",
       placeholderInk: CYAN,
       labelColor: "rgba(0,240,255,0.75)",

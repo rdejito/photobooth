@@ -31,17 +31,16 @@ export const cameraStageStyles = {
   },
   // The stage dot itself is a StatusDot atom rendered by CameraStage.
   //
-  // A wrapping flex row, not an equal-width grid: mixed device ratios make a
-  // row of tiles as wide as the sum of their individual widths, so equal grid
-  // tracks would overflow and overlap. Here each tile keeps its computed width
-  // and the line simply wraps, centring every row on both axes. The tile
-  // geometry (shared height, per-camera ratio) is set by useCameraTileSizing.
+  // An equal-track grid: useCameraTileSizing sets exactly as many tracks as the
+  // scored column count, so rows cannot greedily fit an extra tile. Each tile
+  // keeps its computed width inside its centred track (mixed device ratios
+  // would overflow a max-content grid), and rows are centred on both axes.
   videoGroup: {
-    display: "flex",
+    display: "grid",
     flex: 1,
-    flexWrap: "wrap",
     minWidth: 0,
     minHeight: 0,
+    justifyItems: "center",
     alignItems: "center",
     alignContent: "center",
     justifyContent: "center",

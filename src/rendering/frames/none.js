@@ -5,6 +5,7 @@ import {
   getSlotRects,
 } from "./units.js";
 import { normalizeParticipants } from "./shared.js";
+import { frameBorderWidth } from "../../lib/constants.js";
 
 /** Plain unframed photos on a soft dark background — the literal "no frame". */
 export function renderNone(canvas, context, participants, options = {}) {
@@ -26,7 +27,7 @@ export function renderNone(canvas, context, participants, options = {}) {
     drawSlotPhoto(context, slot, frames[index], {
       label: `PHOTO ${index + 1}`,
       borderColor: "#f4f5f7",
-      borderWidth: 6,
+      borderWidth: frameBorderWidth("none"),
       borderRadius: 0,
       placeholderFill: "#3a3d44",
       placeholderInk: "#aeb3ba",

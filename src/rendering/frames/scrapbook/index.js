@@ -17,6 +17,7 @@ import {
   normalizeParticipants,
   resolveFrameLabels,
 } from "../shared.js";
+import { frameBorderWidth } from "../../../lib/constants.js";
 import {
   drawDaisy,
   drawDots,
@@ -124,7 +125,7 @@ export function renderScrapbook(canvas, context, participants, options = {}) {
     drawSlotPhoto(context, slot, frames[index], {
       label: `PHOTO ${index + 1}`,
       borderColor: "#FFFFFF",
-      borderWidth: 5,
+      borderWidth: frameBorderWidth("scrapbook"),
       placeholderFill: "#E4DED2",
       placeholderInk: "#9a9186",
       labelColor: "#7d7367",

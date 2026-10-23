@@ -13,6 +13,7 @@ import {
   resolveFrameLabels,
   seededNoise,
 } from "./shared.js";
+import { frameBorderWidth } from "../../lib/constants.js";
 
 const INK = "#14101C";
 const GOLD = "#B79B5B";
@@ -177,7 +178,7 @@ export function renderDarkVictorian(canvas, context, participants, options = {})
     drawSlotPhoto(context, slot, frames[index], {
       label: `PHOTO ${index + 1}`,
       borderColor: "#3B2A31",
-      borderWidth: 3,
+      borderWidth: frameBorderWidth("darkVictorian"),
       placeholderFill: "#2A2130",
       placeholderInk: "#8C7F6A",
       labelColor: TEXT,

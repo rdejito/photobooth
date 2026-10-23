@@ -128,12 +128,19 @@ export function groupTileSourceRect(
 
 /**
  * The group-canvas rectangle a themed frame slot cover-crops into, derived from
- * the layout's design-unit slot size. Frame borders are a per-frame cosmetic
- * inset, so the guide intentionally tracks only the selected layout.
+ * the layout's design-unit slot size. `borderWidth` is the frame's slot border,
+ * which insets the photo exactly as `drawSlotCanvas` does, so the live guide
+ * does not promise rows the border will trim.
  */
-export function slotSourceRect(layout) {
+export function slotSourceRect(layout, borderWidth = 0) {
   const slot = getSlotRects(layout)[0];
-  return coverSource(GROUP_SHOT_WIDTH, GROUP_SHOT_HEIGHT, slot.width, slot.height);
+  const inset = Math.max(0, borderWidth);
+  return coverSource(
+    GROUP_SHOT_WIDTH,
+    GROUP_SHOT_HEIGHT,
+    Math.max(0, slot.width - inset * 2),
+    Math.max(0, slot.height - inset * 2),
+  );
 }
 
 /**
@@ -149,6 +156,7 @@ export function cameraCropRegion({
   participantCount,
   participantIndex = 0,
   layout = "single-horizontal",
+  borderWidth = 0,
 }) {
   const width = videoWidth > 0 ? videoWidth : 4;
   const height = videoHeight > 0 ? videoHeight : 3;
@@ -165,7 +173,7 @@ export function cameraCropRegion({
   const tileFractionY = tile.height / height;
 
   // The group-canvas region the frame slot keeps (a centered cover crop).
-  const slot = slotSourceRect(layout);
+  const slot = slotSourceRect(layout, borderWidth);
   const tileX = frame.x * GROUP_SHOT_WIDTH;
   const tileY = frame.y * GROUP_SHOT_HEIGHT;
 

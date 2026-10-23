@@ -12,6 +12,7 @@ import {
   normalizeParticipants,
   resolveFrameLabels,
 } from "./shared.js";
+import { frameBorderWidth } from "../../lib/constants.js";
 
 const LEATHER = "#2E1D14";
 const BRASS = "#C79A4B";
@@ -174,7 +175,7 @@ export function renderSteampunk(canvas, context, participants, options = {}) {
     drawSlotPhoto(context, slot, frames[index], {
       label: `PHOTO ${index + 1}`,
       borderColor: "#3A2417",
-      borderWidth: 4,
+      borderWidth: frameBorderWidth("steampunk"),
       placeholderFill: "#402C1E",
       placeholderInk: "#B79B5B",
       labelColor: TEXT,

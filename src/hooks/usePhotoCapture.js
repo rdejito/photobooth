@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { PhotoCaptureSequence } from "./capture/captureSequence.js";
+import { PhotoCaptureSequence, releaseSnapshotCanvases } from "./capture/captureSequence.js";
 import {
   completeCapture,
   recomposePhoto,
@@ -109,6 +109,7 @@ export function usePhotoCapture({
   // nothing local can be re-composed from. Clearing the refs keeps a guest's
   // preview strictly read-only and ready for the next capture.
   const clearSources = () => {
+    releaseSnapshotCanvases(sourceBurstParticipantsRef.current);
     sourceParticipantsRef.current = [];
     sourceBurstParticipantsRef.current = [];
   };

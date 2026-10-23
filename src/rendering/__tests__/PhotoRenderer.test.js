@@ -59,6 +59,27 @@ describe("renderPhoto burst composition", () => {
     expect(new Set(context.drawImage.mock.calls.map(([shotCanvas]) => shotCanvas)).size).toBe(4);
   });
 
+  it("releases every composed group-shot canvas once the photo is encoded", () => {
+    const shots = Array.from({ length: 4 }, (_, index) => [{
+      video: { width: 320, height: 240, shot: index + 1 },
+      label: "Group",
+    }]);
+    const canvas = {
+      width: 0,
+      height: 0,
+      toDataURL: vi.fn(() => "data:image/png;base64,composite"),
+    };
+    const context = createContext();
+
+    renderPhoto({ canvas, context, participants: [], burstShots: shots, frame: "none", layout: "grid-2x2" });
+
+    const groupShots = context.drawImage.mock.calls.map(([groupShot]) => groupShot);
+    expect(groupShots).toHaveLength(4);
+    for (const groupShot of groupShots) {
+      expect(groupShot).toMatchObject({ width: 0, height: 0 });
+    }
+  });
+
   it("uses the horizontal design units for an unsupported layout key", () => {
     const shots = Array.from({ length: 4 }, (_, index) => [{
       video: { width: 320, height: 240, shot: index + 1 },

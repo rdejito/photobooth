@@ -139,3 +139,19 @@ export class PhotoCaptureSequence {
     this.handlers.onAbort(message);
   }
 }
+
+/**
+ * Releases a finished burst's snapshot canvases. The host keeps them for
+ * frame/layout recompose, so callers invoke this only when a capture is saved
+ * or dismissed.
+ */
+export function releaseSnapshotCanvases(shots = []) {
+  for (const shot of shots) {
+    for (const participant of shot || []) {
+      const canvas = participant?.video;
+      if (!canvas) continue;
+      canvas.width = 0;
+      canvas.height = 0;
+    }
+  }
+}

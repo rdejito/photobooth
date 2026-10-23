@@ -11,6 +11,7 @@ import {
   normalizeParticipants,
   resolveFrameLabels,
 } from "./shared.js";
+import { frameBorderWidth } from "../../lib/constants.js";
 
 const PAPER_TOP = "#fffaf0";
 const PAPER_BOTTOM = "#f6e8d6";
@@ -94,7 +95,7 @@ export function renderClassic(canvas, context, participants, options = {}) {
     drawSlotPhoto(context, slot, frames[index], {
       label: `PHOTO ${index + 1}`,
       borderColor: "#fffdf8",
-      borderWidth: 7,
+      borderWidth: frameBorderWidth("classic"),
       borderRadius: 6,
       placeholderFill: "#efe3d2",
       placeholderInk: "#b0896e",

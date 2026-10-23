@@ -22,10 +22,11 @@ function setStyle(element, property, value) {
  * The arrangement is re-chosen from the stage's live shape: `chooseColumns`
  * lets two landscape cameras stack on a portrait phone and four portrait
  * cameras run across a wide desktop, so the tiles fill the stage instead of
- * leaving letterbox bands. The group wraps each row itself, so the tiles only
- * need whole-pixel widths and a shared height. A `ResizeObserver` covers
- * container changes, and window `resize`/`orientationchange` events cover
- * viewport and rotation changes that don't always surface as a container
+ * leaving letterbox bands. The group is an equal-track grid with exactly that
+ * many columns, so a row can never greedily fit an extra tile, while each tile
+ * keeps its own computed width inside its centred track. A `ResizeObserver`
+ * covers container changes, and window `resize`/`orientationchange` events
+ * cover viewport and rotation changes that don't always surface as a container
  * resize.
  */
 export function useCameraTileSizing(groupRef, participantCount) {
@@ -43,20 +44,29 @@ export function useCameraTileSizing(groupRef, participantCount) {
       const containerWidth = group.clientWidth;
       const containerHeight = group.clientHeight;
       const ratios = tiles.map(readAspectRatio);
+      const columns = chooseColumns({
+        ratios,
+        containerWidth,
+        containerHeight,
+        gapX,
+        gapY,
+      });
       const boxes = computeTileBoxes({
         ratios,
         containerWidth,
         containerHeight,
-        columns: chooseColumns({
-          ratios,
-          containerWidth,
-          containerHeight,
-          gapX,
-          gapY,
-        }),
+        columns,
         gapX,
         gapY,
       });
+      // Equal tracks keep the rendered rows in step with the scored column
+      // count; each tile's own width only ever fills part of its track.
+      setStyle(group, "gridTemplateColumns", `repeat(${columns}, minmax(0, 1fr))`);
+
+      // A partial final row holds one tile. Let it span the grid so it stays
+      // centred like the full rows above it.
+      const trailingTile =
+        columns > 1 && tiles.length % columns === 1 ? tiles.length - 1 : -1;
 
       tiles.forEach((tile, index) => {
         const box = boxes[index];
@@ -64,6 +74,7 @@ export function useCameraTileSizing(groupRef, participantCount) {
         // Whole-pixel sizes keep a full row from wrapping on a rounding error.
         setStyle(tile, "width", `${Math.floor(box.width)}px`);
         setStyle(tile, "height", `${Math.floor(box.height)}px`);
+        setStyle(tile, "gridColumn", index === trailingTile ? "1 / -1" : "");
       });
     };
 

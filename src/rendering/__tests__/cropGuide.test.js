@@ -81,6 +81,16 @@ describe("slotSourceRect", () => {
     expect(source.width).toBeCloseTo(GROUP_SHOT_WIDTH);
     expect(source.height).toBeGreaterThan(GROUP_SHOT_HEIGHT - 1);
   });
+
+  it("insets the source by the frame border, matching drawSlotCanvas", () => {
+    const source = slotSourceRect("single-horizontal", 7);
+
+    // Inner 272x186 slot: the group canvas still spans the full width, but
+    // only 186/0.425 = 437.65 of its 480 rows survive (not the full-slot 447.55).
+    expect(source.x).toBe(0);
+    expect(source.width).toBeCloseTo(GROUP_SHOT_WIDTH);
+    expect(source.height).toBeCloseTo(437.647, 2);
+  });
 });
 
 describe("cameraCropRegion", () => {
@@ -97,6 +107,20 @@ describe("cameraCropRegion", () => {
     expect(region.width).toBeCloseTo(1);
     expect(region.y).toBeCloseTo(0.0338, 3);
     expect(region.height).toBeCloseTo(0.9324, 3);
+  });
+
+  it("accounts for the frame's border inset in the surviving region", () => {
+    const region = cameraCropRegion({
+      videoWidth: 640,
+      videoHeight: 480,
+      participantCount: 1,
+      participantIndex: 0,
+      layout: "single-horizontal",
+      borderWidth: 7,
+    });
+
+    expect(region.y).toBeCloseTo(0.0441, 3);
+    expect(region.height).toBeCloseTo(0.9118, 3);
   });
 
   it("trims the sides of a 16:9 camera shared by two people", () => {

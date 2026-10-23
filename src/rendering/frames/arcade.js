@@ -11,6 +11,7 @@ import {
   normalizeParticipants,
   resolveFrameLabels,
 } from "./shared.js";
+import { frameBorderWidth } from "../../lib/constants.js";
 
 const CYAN = "#53f6e4";
 const MAGENTA = "#ff5bd6";
@@ -93,7 +94,7 @@ export function renderArcade(canvas, context, participants, options = {}) {
     drawSlotPhoto(context, slot, frames[index], {
       label: `PHOTO ${index + 1}`,
       borderColor: CYAN,
-      borderWidth: 6,
+      borderWidth: frameBorderWidth("arcade"),
       borderRadius: 4,
       placeholderFill: "#121a3f",
       placeholderInk: "#38d0c0",

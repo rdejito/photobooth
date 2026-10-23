@@ -18,9 +18,10 @@ describe("MUI setup docs and build coverage", () => {
 describe("camera stage breakpoint regression", () => {
   const { stage, videoGroup } = cameraStageStyles;
 
-  it("wraps and centres tiles so mixed ratios cannot overflow or overlap", () => {
-    expect(videoGroup.display).toBe("flex");
-    expect(videoGroup.flexWrap).toBe("wrap");
+  it("uses centred equal tracks so rows cannot fit more tiles than scored", () => {
+    expect(videoGroup.display).toBe("grid");
+    expect(videoGroup.flexWrap).toBeUndefined();
+    expect(videoGroup.justifyItems).toBe("center");
     expect(videoGroup.alignItems).toBe("center");
     expect(videoGroup.alignContent).toBe("center");
     expect(videoGroup.justifyContent).toBe("center");
@@ -28,9 +29,9 @@ describe("camera stage breakpoint regression", () => {
     expect(videoGroup.minHeight).toBe(0);
   });
 
-  it("keeps each tile at its computed size instead of flex-shrinking", () => {
+  it("keeps each tile at its computed size inside its grid track", () => {
     const tile = videoPreviewStyles.tile;
-    expect(tile.flex).toBe("0 0 auto");
+    expect(tile.width).toBe("100%");
     expect(tile.minWidth).toBe(0);
     expect(tile.minHeight).toBe(0);
   });

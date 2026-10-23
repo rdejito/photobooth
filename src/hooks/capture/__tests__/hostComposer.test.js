@@ -212,4 +212,22 @@ describe("saveCapturedPhoto", () => {
     expect(session.addPhoto).not.toHaveBeenCalled();
     expect(session.broadcastPhoto).not.toHaveBeenCalled();
   });
+
+  it("releases the burst snapshot canvases after saving", () => {
+    const shots = [[
+      { video: { width: 320, height: 240 }, label: "A" },
+      { video: { width: 320, height: 240 }, label: "B" },
+    ]];
+    const session = makeSession({
+      sourceBurstParticipantsRef: { current: shots },
+    });
+
+    saveCapturedPhoto(session);
+
+    expect(shots[0].map(({ video }) => [video.width, video.height])).toEqual([
+      [0, 0],
+      [0, 0],
+    ]);
+    expect(session.sourceBurstParticipantsRef.current).toEqual([]);
+  });
 });

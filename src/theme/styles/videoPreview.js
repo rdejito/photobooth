@@ -5,7 +5,6 @@
 export const videoPreviewStyles = {
   tile: {
     position: "relative",
-    flex: "0 0 auto",
     width: "100%",
     minWidth: 0,
     minHeight: 0,
