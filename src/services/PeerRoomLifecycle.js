@@ -1,4 +1,5 @@
 import { DISCONNECT_GRACE_MS, MAX_PARTICIPANTS } from "../lib/constants.js";
+import { createRejoinToken } from "../lib/rejoin.js";
 
 /**
  * Presence and teardown helpers for a `PeerRoomSession`.
@@ -30,6 +31,7 @@ export function markPeerConnected(session, peerId) {
 export function handlePeerDisconnected(session, peerId) {
   if (session.destroyed) return;
   if (peerId === session.peerId || !session.members.includes(peerId)) return;
+  session.photoTransfer?.removePeer?.(peerId);
   // Drop the dead call and its stream so the tile shows the placeholder and a
   // reconnecting call can take its place: `connectMembers` and
   // `attachIncomingCall` both skip peers that still have an entry in `calls`.
@@ -44,6 +46,28 @@ export function handlePeerDisconnected(session, peerId) {
     session.removeMember(peerId);
   }, DISCONNECT_GRACE_MS);
   session.disconnectTimers.set(peerId, timer);
+}
+
+/**
+ * Removes a seated guest, closing its call and dropping any transfer it left
+ * in flight. `broadcastRoster` is injected to keep this module free of a cycle
+ * with the messaging layer.
+ */
+export function removeMemberFromRoom(session, peerId, broadcastRoster) {
+  if (peerId === session.peerId || !session.members.includes(peerId)) return;
+  session.markPeerConnected(peerId);
+  session.members = session.members.filter((id) => id !== peerId);
+  session.photoTransfer?.removePeer?.(peerId);
+  session.connections.delete(peerId);
+  session.cameraStates.delete(peerId);
+  session.calls.get(peerId)?.close();
+  session.removeCall(peerId);
+  session.deviceIds.delete(peerId);
+  session.rejoinTokens?.delete(peerId);
+  if (session.isHost) {
+    broadcastRoster(session);
+    session.connectMembers();
+  }
 }
 
 /**
@@ -82,41 +106,53 @@ function seatReturningGuest(session, returningId, newPeerId, cameraEnabled) {
   if (oldConnection?.open) oldConnection.close();
   session.connections.delete(returningId);
   session.deviceIds.delete(returningId);
+  session.rejoinTokens?.delete(returningId);
 }
 
 /**
  * Admits a guest (or re-admits a refreshed one) to the host's room. A returning
- * guest sends the same `deviceId` it used before, so its new peer id reclaims
- * the departed seat rather than being appended as an extra participant. When
- * the same device reconnects (a reload or a second tab), the newest session
- * wins the seat; its predecessor's connection is closed.
+ * guest sends the same `deviceId` it used before plus the token the host issued
+ * at admission, so its new peer id reclaims the departed seat rather than being
+ * appended as an extra participant. A missing or wrong token is treated as a
+ * new guest and never evicts the seated peer. When the same device reconnects
+ * (a reload or a second tab), the newest session wins the seat; its
+ * predecessor's connection is closed. Every admitted guest receives a rotated
+ * token for the next rejoin.
  *
  * @returns {boolean} False when the room is full and the guest was rejected.
  */
 export function handleGuestJoin(session, connection, message) {
   const deviceId =
     typeof message.deviceId === "string" && message.deviceId ? message.deviceId : null;
+  const rejoinToken =
+    typeof message.rejoinToken === "string" && message.rejoinToken
+      ? message.rejoinToken
+      : null;
   const cameraEnabled =
     typeof message.cameraEnabled === "boolean" ? message.cameraEnabled : true;
   const existing = session.members.includes(connection.peer);
   // Reclaim any seated peer this device id already owns. Deliberately not gated
   // on the disconnect grace window: on a fast reload the rejoin can beat the
   // host's processing of the old tab's drop, and gating on it would append a
-  // duplicate seat (or reject the returning guest once the room is full). The
-  // trade-off is that a second live tab of the same device takes over the seat;
-  // `seatReturningGuest` closes the old connection so that tab is not left
-  // silently orphaned.
+  // duplicate seat (or reject the returning guest once the room is full).
+  // The seat is only handed over when the host-issued token matches, so a
+  // leaked or guessed device id cannot evict its owner; an unverified rejoin
+  // falls through to the normal admission path as a new guest.
   const returningId =
     deviceId && !existing ? findSeatByDeviceId(session, deviceId) : null;
+  const verifiedId =
+    returningId && rejoinToken && session.rejoinTokens?.get(returningId) === rejoinToken
+      ? returningId
+      : null;
 
-  if (!existing && !returningId && session.members.length >= MAX_PARTICIPANTS) {
+  if (!existing && !verifiedId && session.members.length >= MAX_PARTICIPANTS) {
     connection.send({ type: "room-full" });
     session.onStatus("This room is full. The limit is four participants.");
     return false;
   }
 
-  if (returningId) {
-    seatReturningGuest(session, returningId, connection.peer, cameraEnabled);
+  if (verifiedId) {
+    seatReturningGuest(session, verifiedId, connection.peer, cameraEnabled);
   } else if (existing) {
     session.markPeerConnected(connection.peer);
     session.cameraStates.set(connection.peer, cameraEnabled);
@@ -124,7 +160,14 @@ export function handleGuestJoin(session, connection, message) {
     session.members = [...session.members, connection.peer];
     session.cameraStates.set(connection.peer, cameraEnabled);
   }
-  if (deviceId) session.deviceIds.set(connection.peer, deviceId);
+  // Never bind a duplicate device id to an unverified peer: it would let that
+  // peer inherit the real owner's seat once that seat is freed.
+  if (deviceId && (!returningId || verifiedId)) {
+    session.deviceIds.set(connection.peer, deviceId);
+    const token = createRejoinToken();
+    session.rejoinTokens.set(connection.peer, token);
+    connection.send({ type: "rejoin-token", rejoinToken: token });
+  }
   session.publishParticipants();
   return true;
 }

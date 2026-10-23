@@ -1,20 +1,20 @@
 import Peer from "peerjs";
 import { roomToPeerId } from "../lib/utils.js";
 import { PhotoTransfer } from "./PhotoTransfer.js";
+import { attachRoomConnection, receiveRoster } from "./PeerRoomMessaging.js";
 import {
-  attachRoomConnection,
   broadcastCountdown,
   broadcastCameraState,
   broadcastPhoto,
   broadcastRoster,
-  receiveRoster,
   sendPhotoToMembers,
   sendCameraStates,
-} from "./PeerRoomMessaging.js";
+} from "./PeerRoomBroadcast.js";
 import {
   destroyRoom,
   handlePeerDisconnected,
   markPeerConnected,
+  removeMemberFromRoom,
 } from "./PeerRoomLifecycle.js";
 
 export class PeerRoomSession {
@@ -28,6 +28,8 @@ export class PeerRoomSession {
     onRoomClosed,
     onConnectionFailed,
     deviceId = null,
+    rejoinToken = null,
+    onRejoinToken = null,
   }) {
     this.stream = stream;
     this.onParticipants = onParticipants;
@@ -38,6 +40,8 @@ export class PeerRoomSession {
     this.onRoomClosed = onRoomClosed;
     this.onConnectionFailed = onConnectionFailed;
     this.deviceId = deviceId;
+    this.rejoinToken = rejoinToken;
+    this.onRejoinToken = onRejoinToken;
     this.peer = null;
     this.peerId = null;
     this.roomHostId = null;
@@ -45,6 +49,8 @@ export class PeerRoomSession {
     this.members = [];
     // Host-only: maps each member's peer id to the stable rejoin id it used.
     this.deviceIds = new Map();
+    // Host-only: the credential each guest presents when reclaiming its seat.
+    this.rejoinTokens = new Map();
     this.cameraStates = new Map();
     this.connections = new Map();
     this.calls = new Map();
@@ -203,18 +209,7 @@ export class PeerRoomSession {
   }
 
   removeMember(peerId) {
-    if (peerId === this.peerId || !this.members.includes(peerId)) return;
-    this.markPeerConnected(peerId);
-    this.members = this.members.filter((id) => id !== peerId);
-    this.connections.delete(peerId);
-    this.cameraStates.delete(peerId);
-    this.calls.get(peerId)?.close();
-    this.removeCall(peerId);
-    this.deviceIds.delete(peerId);
-    if (this.isHost) {
-      broadcastRoster(this);
-      this.connectMembers();
-    }
+    removeMemberFromRoom(this, peerId, broadcastRoster);
   }
 
   handlePeerError(error) {

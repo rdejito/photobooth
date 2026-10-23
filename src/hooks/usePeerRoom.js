@@ -39,7 +39,7 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
   const requestIdRef = useRef(0);
   const unmountedRef = useRef(false);
 
-  const startSession = async (role, room, deviceId = null) => {
+  const startSession = async (role, room, deviceId = null, rejoinToken = null) => {
     const requestId = ++requestIdRef.current;
     pendingRef.current = true;
     try {
@@ -58,6 +58,10 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
       const session = new PeerRoomSession({
         stream,
         deviceId,
+        rejoinToken,
+        onRejoinToken: (token) => {
+          if (role === "guest") saveRejoinSession(room, deviceId, token);
+        },
         onParticipants: setParticipants,
         onStatus: setCallStatus,
         onPhoto,
@@ -121,16 +125,19 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
       return;
     }
     // Remember the room and this device's rejoin id so a refresh or accidental
-    // close can drop the guest back into the same booth.
-    const deviceId = readRejoinSession()?.deviceId || createDeviceId();
-    saveRejoinSession(room, deviceId);
+    // close can drop the guest back into the same booth. A token is scoped to
+    // its room: joining a different room must not present (or keep) the old one.
+    const saved = readRejoinSession();
+    const deviceId = saved?.deviceId || createDeviceId();
+    const rejoinToken = saved?.room === room ? saved.rejoinToken : null;
+    saveRejoinSession(room, deviceId, rejoinToken);
     setRoomCode(room);
     setCallStatus(
       rejoin
         ? `Reconnecting to photobooth "${room}"...`
         : `Joining photobooth "${room}"...`,
     );
-    startSession("guest", room, deviceId);
+    startSession("guest", room, deviceId, rejoinToken);
   };
 
   const leaveRoom = () => {

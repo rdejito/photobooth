@@ -1,5 +1,10 @@
+import { FRAME_IDS, LAYOUTS } from "../lib/constants.js";
+
 const CHUNK_SIZE = 12000;
 const MAX_PHOTO_SIZE = 4 * 1024 * 1024;
+const LAYOUT_KEYS = new Set(LAYOUTS.map(({ key }) => key));
+const IMAGE_DATA_URL_RE = /^data:image\/(png|jpeg|webp);base64,/;
+const MAX_TRANSFERS_PER_PEER = 4;
 
 export class PhotoTransfer {
   constructor({ onPhoto, onHostPhoto }) {
@@ -38,16 +43,24 @@ export class PhotoTransfer {
     const key = `${connection.peer}:${message.id}`;
     if (message.type === "photo-start") {
       if (
+        !FRAME_IDS.includes(message.frame) ||
+        !LAYOUT_KEYS.has(message.layout) ||
         !Number.isInteger(message.total) ||
         message.total < 1 ||
         message.total > Math.ceil(MAX_PHOTO_SIZE / CHUNK_SIZE)
       ) {
         return;
       }
+      const prefix = `${connection.peer}:`;
+      let inFlight = 0;
+      for (const otherKey of this.transfers.keys()) {
+        if (otherKey.startsWith(prefix)) inFlight += 1;
+      }
+      if (!this.transfers.has(key) && inFlight >= MAX_TRANSFERS_PER_PEER) return;
       this.transfers.set(key, {
         id: message.id,
         frame: message.frame,
-        layout: typeof message.layout === "string" ? message.layout : "single-horizontal",
+        layout: message.layout,
         captureId: typeof message.captureId === "string" ? message.captureId : message.id,
         revision: Number.isInteger(message.revision) && message.revision >= 0
           ? message.revision
@@ -77,6 +90,8 @@ export class PhotoTransfer {
     if (transfer.received !== transfer.chunks.length) return;
 
     this.transfers.delete(key);
+    const dataUrl = transfer.chunks.join("");
+    if (!IMAGE_DATA_URL_RE.test(dataUrl)) return;
     const photo = {
       id: transfer.id,
       frame: transfer.frame,
@@ -85,10 +100,18 @@ export class PhotoTransfer {
       revision: transfer.revision,
       preview: transfer.preview,
       eventName: transfer.eventName,
-      dataUrl: transfer.chunks.join(""),
+      dataUrl,
     };
     this.onPhoto(photo);
     this.onHostPhoto(photo, connection.peer);
+  }
+
+  removePeer(peerId) {
+    if (!peerId) return;
+    const prefix = `${peerId}:`;
+    for (const key of Array.from(this.transfers.keys())) {
+      if (key.startsWith(prefix)) this.transfers.delete(key);
+    }
   }
 
   clear() {

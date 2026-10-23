@@ -1,28 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { handleGuestJoin } from "../PeerRoomLifecycle.js";
-
-/** A minimal host session covering the state handleGuestJoin touches. */
-function createHostSession(members = ["host"]) {
-  return {
-    isHost: true,
-    peerId: "host",
-    members: [...members],
-    deviceIds: new Map(),
-    cameraStates: new Map([["host", true]]),
-    calls: new Map(),
-    remoteStreams: new Map(),
-    connections: new Map(),
-    disconnectTimers: new Map(),
-    disconnectedPeers: new Set(),
-    onStatus: vi.fn(),
-    markPeerConnected: vi.fn(),
-    publishParticipants: vi.fn(),
-  };
-}
-
-function createConnection(peer) {
-  return { peer, open: true, send: vi.fn(), close: vi.fn() };
-}
+import { createConnection, createHostSession } from "./lifecycleTestHelpers.js";
 
 describe("handleGuestJoin", () => {
   beforeEach(() => {
@@ -36,6 +14,7 @@ describe("handleGuestJoin", () => {
   it("re-seats a returning guest in place of its disconnected peer", () => {
     const session = createHostSession(["host", "old-guest"]);
     session.deviceIds.set("old-guest", "device-1");
+    session.rejoinTokens.set("old-guest", "token-1");
     session.cameraStates.set("old-guest", true);
     session.remoteStreams.set("old-guest", { id: "old-stream" });
     const deadCall = { close: vi.fn() };
@@ -47,6 +26,7 @@ describe("handleGuestJoin", () => {
     const admitted = handleGuestJoin(session, connection, {
       type: "join",
       deviceId: "device-1",
+      rejoinToken: "token-1",
       cameraEnabled: false,
     });
 
@@ -100,11 +80,16 @@ describe("handleGuestJoin", () => {
     // guest must reclaim it instead of being rejected as a new arrival.
     const session = createHostSession(["host", "a", "b", "old-guest"]);
     session.deviceIds.set("old-guest", "device-1");
+    session.rejoinTokens.set("old-guest", "token-1");
     session.disconnectedPeers.add("old-guest");
     session.disconnectTimers.set("old-guest", setTimeout(() => {}, 10000));
 
     const connection = createConnection("new-guest");
-    const admitted = handleGuestJoin(session, connection, { type: "join", deviceId: "device-1" });
+    const admitted = handleGuestJoin(session, connection, {
+      type: "join",
+      deviceId: "device-1",
+      rejoinToken: "token-1",
+    });
 
     expect(admitted).toBe(true);
     expect(session.members).toEqual(["host", "a", "b", "new-guest"]);
@@ -116,11 +101,13 @@ describe("handleGuestJoin", () => {
     // the reconnecting guest would be appended as a duplicate participant.
     const session = createHostSession(["host", "old-guest"]);
     session.deviceIds.set("old-guest", "device-1");
+    session.rejoinTokens.set("old-guest", "token-1");
     const connection = createConnection("reload-guest");
 
     const admitted = handleGuestJoin(session, connection, {
       type: "join",
       deviceId: "device-1",
+      rejoinToken: "token-1",
       cameraEnabled: false,
     });
 
@@ -133,6 +120,7 @@ describe("handleGuestJoin", () => {
   it("lets the newest tab take over the device's seat instead of duplicating it", () => {
     const session = createHostSession(["host", "live-guest"]);
     session.deviceIds.set("live-guest", "device-1");
+    session.rejoinTokens.set("live-guest", "token-1");
     const liveConnection = createConnection("live-guest");
     session.connections.set("live-guest", liveConnection);
 
@@ -140,6 +128,7 @@ describe("handleGuestJoin", () => {
     const admitted = handleGuestJoin(session, connection, {
       type: "join",
       deviceId: "device-1",
+      rejoinToken: "token-1",
     });
 
     expect(admitted).toBe(true);
@@ -153,6 +142,7 @@ describe("handleGuestJoin", () => {
     // reloading guest reclaims it rather than being turned away or duplicated.
     const session = createHostSession(["host", "a", "b", "old-guest"]);
     session.deviceIds.set("old-guest", "device-1");
+    session.rejoinTokens.set("old-guest", "token-1");
     const oldConnection = createConnection("old-guest");
     session.connections.set("old-guest", oldConnection);
 
@@ -160,6 +150,7 @@ describe("handleGuestJoin", () => {
     const admitted = handleGuestJoin(session, connection, {
       type: "join",
       deviceId: "device-1",
+      rejoinToken: "token-1",
     });
 
     expect(admitted).toBe(true);
@@ -183,4 +174,5 @@ describe("handleGuestJoin", () => {
     expect(session.markPeerConnected).toHaveBeenCalledWith("guest-1");
     expect(session.cameraStates.get("guest-1")).toBe(false);
   });
+
 });

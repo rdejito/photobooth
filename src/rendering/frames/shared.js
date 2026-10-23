@@ -19,15 +19,20 @@ export function formatFrameDate(date = new Date()) {
   }
 }
 
+const MAX_EVENT_NAME_LENGTH = 40;
+
 /**
  * Normalises the label inputs for a frame. The event name is optional and is
  * omitted cleanly when empty (see `hasEvent`), so a layout never looks broken.
+ * Peer-supplied names are capped to the same length as the input field.
  */
 export function resolveFrameLabels({ takenAt, eventName } = {}) {
   const date = takenAt === undefined || takenAt === null || takenAt === ""
     ? new Date()
     : takenAt;
-  const event = typeof eventName === "string" ? eventName.trim() : "";
+  const event = (typeof eventName === "string" ? eventName.trim() : "")
+    .slice(0, MAX_EVENT_NAME_LENGTH)
+    .trim();
   return {
     date: formatFrameDate(date),
     title: "Little Moments",

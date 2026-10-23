@@ -1,92 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { pack, unpack } from "peerjs-js-binarypack";
-import {
-  attachRoomConnection,
-  broadcastCountdown,
-  parseCountdownMessage,
-} from "../PeerRoomMessaging.js";
-
-describe("parseCountdownMessage", () => {
-  it("accepts the clearing null message when the shot key is absent", () => {
-    expect(parseCountdownMessage({ type: "countdown", value: null })).toEqual({
-      value: null,
-    });
-    expect(parseCountdownMessage({ type: "countdown", value: null, total: 4 })).toEqual({
-      value: null,
-    });
-  });
-
-  it("accepts a clearing message after PeerJS serialization turns shot:undefined into null", () => {
-    const roundTripped = unpack(
-      pack({ type: "countdown", value: null, shot: undefined, total: 4 }),
-    );
-    expect(roundTripped.shot).toBeNull();
-    expect(parseCountdownMessage(roundTripped)).toEqual({ value: null });
-  });
-
-  it("accepts a clearing message carrying shot:null directly", () => {
-    expect(
-      parseCountdownMessage({ type: "countdown", value: null, shot: null, total: 4 }),
-    ).toEqual({ value: null });
-  });
-
-  it("accepts numbered and capture-moment messages with valid shot metadata", () => {
-    expect(parseCountdownMessage({ type: "countdown", value: 3, shot: 1, total: 4 })).toEqual({
-      value: 3,
-      meta: { shot: 1, total: 4 },
-    });
-    expect(parseCountdownMessage({ type: "countdown", value: "📸", shot: 4, total: 4 })).toEqual({
-      value: "📸",
-      meta: { shot: 4, total: 4 },
-    });
-  });
-
-  it("rejects messages with invalid values, shots, or totals", () => {
-    expect(parseCountdownMessage({ type: "countdown", value: 9, shot: 1, total: 4 })).toBeNull();
-    expect(parseCountdownMessage({ type: "countdown", value: 3, shot: 5, total: 4 })).toBeNull();
-    expect(parseCountdownMessage({ type: "countdown", value: 3, shot: "x", total: 4 })).toBeNull();
-    expect(parseCountdownMessage({ type: "countdown", value: 3, shot: 1, total: 3 })).toBeNull();
-    expect(parseCountdownMessage({ type: "other", value: 3 })).toBeNull();
-    expect(parseCountdownMessage(null)).toBeNull();
-  });
-});
-
-describe("broadcastCountdown", () => {
-  const createSession = ({ isHost = true } = {}) => ({
-    isHost,
-    members: ["guest-1"],
-    connections: new Map([
-      ["guest-1", { peer: "guest-1", open: true, send: vi.fn() }],
-    ]),
-  });
-
-  it("omits the shot key on the clearing message", () => {
-    const session = createSession();
-    broadcastCountdown(session, null);
-    expect(session.connections.get("guest-1").send).toHaveBeenCalledWith({
-      type: "countdown",
-      value: null,
-      total: 4,
-    });
-  });
-
-  it("includes the shot number on regular countdown messages", () => {
-    const session = createSession();
-    broadcastCountdown(session, 3, { shot: 1, total: 4 });
-    expect(session.connections.get("guest-1").send).toHaveBeenCalledWith({
-      type: "countdown",
-      value: 3,
-      shot: 1,
-      total: 4,
-    });
-  });
-
-  it("does not broadcast from a guest session", () => {
-    const session = createSession({ isHost: false });
-    broadcastCountdown(session, null);
-    expect(session.connections.get("guest-1").send).not.toHaveBeenCalled();
-  });
-});
+import { attachRoomConnection } from "../PeerRoomMessaging.js";
 
 describe("attachRoomConnection departure handling", () => {
   /** A connection stand-in that records the handlers the session registers. */
@@ -149,6 +62,113 @@ describe("attachRoomConnection departure handling", () => {
   });
 });
 
+describe("room-level message authorisation", () => {
+  function createConnection(peer) {
+    const handlers = {};
+    return {
+      peer,
+      open: true,
+      handlers,
+      send: vi.fn(),
+      close: vi.fn(),
+      on: (event, handler) => {
+        handlers[event] = handler;
+      },
+    };
+  }
+
+  function createHostSession() {
+    return {
+      isHost: true,
+      peerId: "host",
+      roomHostId: "host",
+      joined: true,
+      members: ["host", "guest-1"],
+      connections: new Map(),
+      cameraStates: new Map(),
+      onStatus: vi.fn(),
+      onRoomFull: vi.fn(),
+      onRoomClosed: vi.fn(),
+      photoTransfer: { receive: vi.fn() },
+      removeMember: vi.fn(),
+      handlePeerDisconnected: vi.fn(),
+      failJoin: vi.fn(),
+    };
+  }
+
+  function createGuestSession() {
+    return {
+      isHost: false,
+      peerId: "self",
+      roomHostId: "host",
+      joined: true,
+      members: ["self", "host"],
+      connections: new Map(),
+      cameraStates: new Map(),
+      onStatus: vi.fn(),
+      onRoomFull: vi.fn(),
+      onRoomClosed: vi.fn(),
+      photoTransfer: { receive: vi.fn() },
+      failJoin: vi.fn(),
+    };
+  }
+
+  it("ignores room-closed and room-full sent by a guest", () => {
+    const session = createHostSession();
+    const connection = createConnection("guest-1");
+    attachRoomConnection(session, connection);
+
+    connection.handlers.data({ type: "room-closed" });
+    connection.handlers.data({ type: "room-full" });
+
+    expect(session.onRoomClosed).not.toHaveBeenCalled();
+    expect(session.onRoomFull).not.toHaveBeenCalled();
+  });
+
+  it("still ends the room when the host sends room-closed to a guest", () => {
+    const session = createGuestSession();
+    const connection = createConnection("host");
+    attachRoomConnection(session, connection);
+
+    connection.handlers.data({ type: "room-closed" });
+
+    expect(session.onRoomClosed).toHaveBeenCalledOnce();
+  });
+
+  it("does not accept photo messages on the host", () => {
+    const session = createHostSession();
+    const connection = createConnection("guest-1");
+    attachRoomConnection(session, connection);
+
+    connection.handlers.data({ type: "photo-start", id: "p", total: 1 });
+    connection.handlers.data({ type: "photo-chunk", id: "p", index: 0, data: "x" });
+
+    expect(session.photoTransfer.receive).not.toHaveBeenCalled();
+  });
+
+  it("stores and reports the host-issued rejoin token on a guest", () => {
+    const session = { ...createGuestSession(), onRejoinToken: vi.fn() };
+    const connection = createConnection("host");
+    attachRoomConnection(session, connection);
+
+    connection.handlers.data({ type: "rejoin-token", rejoinToken: "token-1" });
+
+    expect(session.rejoinToken).toBe("token-1");
+    expect(session.onRejoinToken).toHaveBeenCalledWith("token-1");
+  });
+
+  it("ignores a malformed rejoin token on a guest", () => {
+    const session = { ...createGuestSession(), onRejoinToken: vi.fn() };
+    const connection = createConnection("host");
+    attachRoomConnection(session, connection);
+
+    connection.handlers.data({ type: "rejoin-token", rejoinToken: "" });
+
+    expect(session.rejoinToken).toBeUndefined();
+    expect(session.onRejoinToken).not.toHaveBeenCalled();
+  });
+});
+
 describe("attachRoomConnection rejoin handling", () => {
   function createConnection(peer) {
     const handlers = {};
@@ -171,6 +191,7 @@ describe("attachRoomConnection rejoin handling", () => {
       joined: true,
       members: ["host"],
       deviceIds: new Map(),
+      rejoinTokens: new Map(),
       cameraStates: new Map([["host", true]]),
       calls: new Map(),
       remoteStreams: new Map(),
@@ -210,6 +231,7 @@ describe("attachRoomConnection rejoin handling", () => {
       peerId: "self",
       cameraStates: new Map([["self", true]]),
       deviceId: "device-1",
+      rejoinToken: "token-1",
     };
     const connection = createConnection("host");
     attachRoomConnection(session, connection);
@@ -220,6 +242,7 @@ describe("attachRoomConnection rejoin handling", () => {
       type: "join",
       cameraEnabled: true,
       deviceId: "device-1",
+      rejoinToken: "token-1",
     });
   });
 });

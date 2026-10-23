@@ -1,57 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DISCONNECT_GRACE_MS } from "../../lib/constants.js";
-import { PeerRoomSession } from "../PeerRoomSession.js";
-
-/** A minimal local MediaStream stand-in exposing only the track `stop` call. */
-function createLocalStream() {
-  const stop = vi.fn();
-  return {
-    stream: { getTracks: () => [{ stop }] },
-    stop,
-  };
-}
-
-/** A connection stand-in exposing the methods destroy/teardown touch. */
-function createConnection(peer, { open = true } = {}) {
-  return { peer, open, send: vi.fn(), close: vi.fn() };
-}
-
-/** A call stand-in exposing the methods used by the session. */
-function createCall(peer) {
-  const handlers = {};
-  return {
-    peer,
-    handlers,
-    close: vi.fn(),
-    answer: vi.fn(),
-    on: (event, handler) => {
-      handlers[event] = handler;
-    },
-  };
-}
-
-function createSession({ localStream, isHost = false } = {}) {
-  const participants = [];
-  const statuses = [];
-  const session = new PeerRoomSession({
-    stream: localStream,
-    onParticipants: (next) => participants.push(next),
-    onStatus: (message) => statuses.push(message),
-    onPhoto: () => {},
-    onCountdown: () => {},
-    onRoomFull: () => {},
-    onRoomClosed: () => {},
-    onConnectionFailed: () => {},
-  });
-  session.isHost = isHost;
-  session.peerId = isHost ? "host" : "self";
-  session.roomHostId = "host";
-  session.members = isHost ? ["host"] : ["self", "host"];
-  session.cameraStates.set(session.peerId, true);
-  return { session, participants, statuses };
-}
-
-const latest = (participants) => participants[participants.length - 1];
+import {
+  createCall,
+  createConnection,
+  createLocalStream,
+  createSession,
+  latest,
+} from "./sessionTestHelpers.js";
 
 describe("PeerRoomSession teardown", () => {
   it("stops local tracks and closes calls/connections on an explicit leave", () => {
@@ -206,90 +161,5 @@ describe("PeerRoomSession disconnect grace period", () => {
     expect(session.disconnectTimers.size).toBe(0);
     vi.advanceTimersByTime(DISCONNECT_GRACE_MS);
     expect(session.disconnectedPeers.size).toBe(0);
-  });
-});
-
-describe("PeerRoomSession rejoin bookkeeping", () => {
-  it("forgets a departed guest's rejoin id", () => {
-    const { stream } = createLocalStream();
-    const { session } = createSession({ localStream: stream, isHost: true });
-    session.members = ["host", "guest-1"];
-    session.deviceIds.set("guest-1", "device-1");
-
-    session.removeMember("guest-1");
-
-    expect(session.deviceIds.has("guest-1")).toBe(false);
-  });
-});
-
-describe("PeerRoomSession host peer errors", () => {
-  it("does not fail the host when a peer error occurs after the host is ready", () => {
-    const { stream } = createLocalStream();
-    const onConnectionFailed = vi.fn();
-    const session = new PeerRoomSession({
-      stream,
-      onParticipants: () => {},
-      onStatus: () => {},
-      onPhoto: () => {},
-      onCountdown: () => {},
-      onRoomFull: () => {},
-      onRoomClosed: () => {},
-      onConnectionFailed,
-    });
-    session.isHost = true;
-    session.peerId = "host";
-    session.roomHostId = "host";
-    session.members = ["host"];
-    session.joined = false;
-
-    session.handlePeerError({ type: "peer-unavailable" });
-
-    expect(onConnectionFailed).not.toHaveBeenCalled();
-  });
-
-  it("still fails the host on unavailable-id", () => {
-    const { stream } = createLocalStream();
-    const onConnectionFailed = vi.fn();
-    const session = new PeerRoomSession({
-      stream,
-      onParticipants: () => {},
-      onStatus: () => {},
-      onPhoto: () => {},
-      onCountdown: () => {},
-      onRoomFull: () => {},
-      onRoomClosed: () => {},
-      onConnectionFailed,
-    });
-    session.isHost = true;
-    session.peerId = "host";
-    session.roomHostId = "host";
-    session.members = ["host"];
-    session.joined = false;
-
-    session.handlePeerError({ type: "unavailable-id" });
-
-    expect(onConnectionFailed).toHaveBeenCalled();
-  });
-
-  it("does not fail the host on network/webrtc errors", () => {
-    const { stream } = createLocalStream();
-    const onConnectionFailed = vi.fn();
-    const session = new PeerRoomSession({
-      stream,
-      onParticipants: () => {},
-      onStatus: () => {},
-      onPhoto: () => {},
-      onCountdown: () => {},
-      onRoomFull: () => {},
-      onRoomClosed: () => {},
-      onConnectionFailed,
-    });
-    session.isHost = true;
-    session.joined = false;
-
-    session.handlePeerError({ type: "network" });
-    session.handlePeerError({ type: "webrtc" });
-
-    expect(onConnectionFailed).not.toHaveBeenCalled();
   });
 });

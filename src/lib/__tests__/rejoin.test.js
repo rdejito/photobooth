@@ -10,9 +10,22 @@ describe("rejoin session persistence", () => {
     localStorage.clear();
   });
 
-  it("round-trips the room and device id", () => {
+  it("round-trips the room, device id and host-issued rejoin token", () => {
+    saveRejoinSession("GEMS22", "device-1", "token-1");
+    expect(readRejoinSession()).toEqual({
+      room: "GEMS22",
+      deviceId: "device-1",
+      rejoinToken: "token-1",
+    });
+  });
+
+  it("returns a null token when none has been issued yet", () => {
     saveRejoinSession("GEMS22", "device-1");
-    expect(readRejoinSession()).toEqual({ room: "GEMS22", deviceId: "device-1" });
+    expect(readRejoinSession()).toEqual({
+      room: "GEMS22",
+      deviceId: "device-1",
+      rejoinToken: null,
+    });
   });
 
   it("returns null when nothing is stored or the payload is corrupt", () => {
@@ -23,7 +36,11 @@ describe("rejoin session persistence", () => {
 
   it("normalizes the room code and rejects an empty or oversized one", () => {
     saveRejoinSession("  gems22  ", "device-1");
-    expect(readRejoinSession()).toEqual({ room: "GEMS22", deviceId: "device-1" });
+    expect(readRejoinSession()).toEqual({
+      room: "GEMS22",
+      deviceId: "device-1",
+      rejoinToken: null,
+    });
 
     localStorage.setItem(
       "photobooth.rejoin",
@@ -34,14 +51,22 @@ describe("rejoin session persistence", () => {
 
   it("strips characters a room code cannot contain instead of discarding the session", () => {
     saveRejoinSession("GEMS-2", "device-1");
-    expect(readRejoinSession()).toEqual({ room: "GEMS2", deviceId: "device-1" });
+    expect(readRejoinSession()).toEqual({
+      room: "GEMS2",
+      deviceId: "device-1",
+      rejoinToken: null,
+    });
 
     // A payload left by an older client is repaired on read, not rejected.
     localStorage.setItem(
       "photobooth.rejoin",
       JSON.stringify({ room: "gem s!2", deviceId: "x" }),
     );
-    expect(readRejoinSession()).toEqual({ room: "GEMS2", deviceId: "x" });
+    expect(readRejoinSession()).toEqual({
+      room: "GEMS2",
+      deviceId: "x",
+      rejoinToken: null,
+    });
   });
 
   it("clears the stored room on demand", () => {

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { attachRoomConnection, broadcastPhoto } from "../PeerRoomMessaging.js";
+import { broadcastPhoto } from "../PeerRoomBroadcast.js";
+import { attachRoomConnection } from "../PeerRoomMessaging.js";
 
 /**
  * A photo "clear" is the host dismissing an unsaved preview. It travels over
