@@ -85,6 +85,13 @@ function handleRoomMessage(session, connection, message) {
     session.photoTransfer.receive(connection, message);
     return;
   }
+  // Only the host can dismiss a pending preview, and only guests act on it.
+  if (message.type === "photo-cleared") {
+    if (!session.isHost && typeof message.captureId === "string") {
+      session.onPhoto?.({ cleared: true, captureId: message.captureId });
+    }
+    return;
+  }
   if (message.type === "room-closed") {
     session.onStatus("The room creator ended the photobooth.");
     session.onRoomClosed();
@@ -216,6 +223,17 @@ export function sendPhotoToMembers(session, photo, exceptPeer = null) {
 }
 
 export function broadcastPhoto(session, photo) {
+  // A clear dismisses the host's unsaved preview on guests. Only the host can
+  // send one; guests ignore another guest's attempt.
+  if (photo?.cleared) {
+    if (!session.isHost || typeof photo.captureId !== "string") return;
+    for (const [peerId, connection] of session.connections) {
+      if (session.members.includes(peerId) && connection.open) {
+        connection.send({ type: "photo-cleared", captureId: photo.captureId });
+      }
+    }
+    return;
+  }
   try {
     if (session.isHost) {
       sendPhotoToMembers(session, photo);

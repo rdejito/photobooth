@@ -18,12 +18,40 @@ export function applyIncomingCountdown(value, meta, session) {
 }
 
 /**
+ * Applies the host dismissing an unsaved preview ("Take another"). Guests
+ * close the dialog only if they are still showing that capture's preview —
+ * a clear for another, older capture must not close a newer one, and a saved
+ * photo is never dismissed. The sentinel revision keeps an in-flight preview
+ * revision of the dismissed capture from re-opening the dialog.
+ */
+export function applyIncomingPhotoClear(captureId, session) {
+  const received = session.receivedPhotoRef.current;
+  if (!received || received.captureId !== captureId || received.saved) return;
+  session.receivedPhotoRef.current = {
+    captureId,
+    revision: Number.MAX_SAFE_INTEGER,
+    saved: false,
+  };
+  session.setCountdown(null);
+  session.setShotNumber(0);
+  session.setPhotoDataUrl("");
+  session.setCanCustomizePreview(false);
+  session.clearSources();
+  session.setPhotoPending(false);
+  session.setShowPreview(false);
+}
+
+/**
  * Applies an incoming photo revision. Later revisions of the same capture win;
  * once a capture's saved photo has arrived it is final, so no late preview or
  * duplicate save can replace it. Guests cannot customize, so photos only arrive
- * as screenshots of the host's choices.
+ * as screenshots of the host's choices. A `cleared` message dismisses instead.
  */
 export function applyIncomingPhoto(photo, session) {
+  if (photo?.cleared) {
+    applyIncomingPhotoClear(photo.captureId, session);
+    return;
+  }
   session.setCountdown(null);
   session.setShotNumber(0);
   const captureId = photo.captureId || photo.id;

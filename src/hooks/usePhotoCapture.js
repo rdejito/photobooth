@@ -208,6 +208,11 @@ export function usePhotoCapture({
   const savePhoto = () => saveCapturedPhoto(session);
 
   const hidePreview = () => {
+    // An unsaved preview is mirrored on guests; a saved photo stays on their
+    // screens so they can still download it.
+    const dismissedCaptureId = photoSavedRef.current
+      ? null
+      : captureIdRef.current;
     setShowPreview(false);
     setCanCustomizePreview(false);
     setPhotoPending(false);
@@ -215,6 +220,9 @@ export function usePhotoCapture({
     clearSources();
     photoSavedRef.current = false;
     captureIdRef.current = null;
+    if (dismissedCaptureId) {
+      broadcastPhoto({ cleared: true, captureId: dismissedCaptureId });
+    }
   };
 
   return {
