@@ -38,6 +38,7 @@ export const boothIntroStyles = {
       gap: 0.75,
       p: 1.25,
       overflowY: "auto",
+      overscrollBehavior: "contain",
       border: "1px solid rgba(255,255,255,0.09)",
       borderRadius: "14px",
       backgroundColor: "rgba(255,255,255,0.035)",

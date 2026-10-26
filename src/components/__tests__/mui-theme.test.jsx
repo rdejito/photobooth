@@ -25,4 +25,17 @@ describe("MUI theme", () => {
     expect(baseline["button, input, textarea, select"]).toEqual({ font: "inherit" });
     expect(baseline["#root"]).toMatchObject({ minHeight: "100vh" });
   });
+
+  it("never sets overflow on the root elements", () => {
+    // Root overflow propagates to the viewport and freezes document scrolling
+    // on mobile browsers; containment has to stay on the booth shell.
+    const baseline = muiTheme.components.MuiCssBaseline.styleOverrides;
+
+    for (const element of ["html", "body"]) {
+      expect(baseline[element].overflow).toBeUndefined();
+      expect(baseline[element].overflowX).toBeUndefined();
+      expect(baseline[element].overflowY).toBeUndefined();
+      expect(baseline[element].overscrollBehavior).toBeUndefined();
+    }
+  });
 });

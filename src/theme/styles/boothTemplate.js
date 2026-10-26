@@ -56,6 +56,7 @@ export const boothSideStyles = {
     flexDirection: "column",
     gap: 0.75,
     overflowY: "auto",
+    overscrollBehavior: "contain",
   },
 };
 

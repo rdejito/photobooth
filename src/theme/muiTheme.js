@@ -37,15 +37,18 @@ const muiTheme = createTheme({
       styleOverrides: {
         // The booth is a locked 100dvh dark screen; a light document behind it
         // shows through on iOS overscroll/toolbar resize as a pale band.
+        //
+        // Never put `overflow` here. The root element's overflow is propagated
+        // to the viewport, and mobile WebKit/Blink react by no longer treating
+        // the document as a normal scrolling page — the join screen can freeze
+        // completely. Containment belongs on the panels that scroll instead
+        // (see styles/boothIntro.js and styles/boothTemplate.js).
         html: {
           background: "#171423",
-          overflowX: "hidden",
         },
         body: {
           margin: 0,
           minHeight: "100vh",
-          overflowX: "hidden",
-          overscrollBehavior: "none",
           color: "#fffaf7",
           background: "#171423",
           fontSynthesis: "none",
