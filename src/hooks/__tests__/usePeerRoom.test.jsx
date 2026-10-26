@@ -155,3 +155,43 @@ describe("usePeerRoom connected state", () => {
     expect(connected()).toBe("true");
   });
 });
+
+describe("usePeerRoom media capture", () => {
+  beforeEach(() => {
+    destroyMock.mockClear();
+    startHostMock.mockClear();
+    sessionRef.current = null;
+  });
+
+  it("asks for the microphone alongside the camera", async () => {
+    const getUserMedia = vi.fn().mockResolvedValue(streamMock);
+    Object.defineProperty(window.navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia },
+    });
+
+    await renderInRoom();
+
+    expect(getUserMedia).toHaveBeenCalledWith({ video: true, audio: true });
+    expect(startHostMock).toHaveBeenCalled();
+  });
+
+  it("still joins video-only when the microphone is unavailable", async () => {
+    const getUserMedia = vi
+      .fn()
+      .mockRejectedValueOnce(
+        Object.assign(new Error("microphone blocked"), { name: "NotAllowedError" }),
+      )
+      .mockResolvedValueOnce(streamMock);
+    Object.defineProperty(window.navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia },
+    });
+
+    await renderInRoom();
+
+    expect(getUserMedia).toHaveBeenNthCalledWith(2, { video: true, audio: false });
+    expect(startHostMock).toHaveBeenCalled();
+    expect(sessionRef.current.options.stream).toBe(streamMock);
+  });
+});

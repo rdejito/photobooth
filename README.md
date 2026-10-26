@@ -10,8 +10,8 @@ browser.
 
 ## For users
 
-Open the photobooth website in a modern browser and allow camera access. To use
-it with remote guests, use a publicly reachable HTTPS deployment.
+Open the photobooth website in a modern browser and allow camera and microphone
+access. To use it with remote guests, use a publicly reachable HTTPS deployment.
 
 1. One person selects **Create a room** and shares the displayed room code.
 2. Up to three guests open the same website, enter that code, and select

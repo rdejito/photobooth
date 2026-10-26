@@ -25,6 +25,21 @@ const getCameraPermissionMessage = (error) => {
   }
 };
 
+/**
+ * Requests the booth's media stream: camera plus microphone, so guests can talk
+ * to each other while they pose. The combined request is retried video-only if
+ * it fails — a missing or refused microphone must not lock someone out of the
+ * booth. If the camera itself is blocked the retry fails too and the normal
+ * permission message is shown.
+ */
+async function requestBoothStream() {
+  try {
+    return await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+  } catch {
+    return navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+  }
+}
+
 export function usePeerRoom({ onPhoto, onCountdown }) {
   const [stage, setStage] = useState("join");
   const [joinStatus, setJoinStatus] = useState(
@@ -43,10 +58,7 @@ export function usePeerRoom({ onPhoto, onCountdown }) {
     const requestId = ++requestIdRef.current;
     pendingRef.current = true;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: false,
-      });
+      const stream = await requestBoothStream();
       if (unmountedRef.current || requestId !== requestIdRef.current) {
         stream.getTracks().forEach((track) => track.stop());
         return;
