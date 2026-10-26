@@ -120,8 +120,8 @@ describe("camera crop preview", () => {
     expect(tileAspect(container)).toBeCloseTo(0.6782, 3);
   });
 
-  it("renders no separate framing guide over the preview", () => {
-    const { container } = render(
+  it("marks the photo area only while the live preview is showing", () => {
+    const { container, rerender } = render(
       <VideoPreview
         stream={createStream(1280, 720)}
         label="Ada"
@@ -130,7 +130,31 @@ describe("camera crop preview", () => {
       />,
     );
 
-    expect(container.querySelector("[data-testid='camera-crop-guide']")).toBeNull();
+    // The dashed frame confirms the crop; it must not re-draw a smaller region.
+    expect(screen.getByTestId("camera-photo-area-guide")).toBeInTheDocument();
+    expect(screen.getByText("Photo area")).toBeInTheDocument();
     expect(screen.getByText("Ada")).toBeInTheDocument();
+
+    rerender(
+      <VideoPreview
+        stream={createStream(1280, 720)}
+        label="Ada"
+        cameraEnabled={false}
+        participantCount={2}
+        participantIndex={0}
+      />,
+    );
+    expect(container.querySelector("[data-testid='camera-photo-area-guide']")).toBeNull();
+
+    rerender(
+      <VideoPreview
+        stream={createStream(1280, 720)}
+        label="Ada"
+        connected={false}
+        participantCount={2}
+        participantIndex={0}
+      />,
+    );
+    expect(container.querySelector("[data-testid='camera-photo-area-guide']")).toBeNull();
   });
 });

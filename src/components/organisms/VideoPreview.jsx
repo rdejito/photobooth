@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import StatusDot from "../atoms/StatusDot.jsx";
+import PhotoAreaGuide from "../atoms/PhotoAreaGuide.jsx";
 import { cameraCropRegion } from "../../rendering/cropGuide.js";
 import { frameBorderWidth } from "../../lib/constants.js";
 import { videoPreviewStyles } from "../../theme/styles/videoPreview.js";
@@ -35,7 +36,8 @@ function cropWindowStyle({ x, y, width, height }) {
  * The tile itself is cropped to exactly the region that survives into the final
  * photo, so what a participant frames is what they get. The tile's aspect ratio
  * comes from that region (not from the camera), and the video is scaled and
- * offset so the saved crop fills it.
+ * offset so the saved crop fills it. A dashed "Photo area" frame confirms the
+ * crop without dimming or outlining a second region.
  *
  * @param {object} props
  * @param {React.Ref} props.videoRef - Forwarded ref so the capture sequence
@@ -107,6 +109,7 @@ export default function VideoPreview({
   const tileAspect = `${cropRegion.width * videoSize.width} / ${
     cropRegion.height * videoSize.height
   }`;
+  const showPhotoArea = Boolean(stream) && cameraEnabled && connected;
 
   return (
     <Box
@@ -153,6 +156,7 @@ export default function VideoPreview({
           </Typography>
         </Box>
       )}
+      {showPhotoArea && <PhotoAreaGuide />}
       <Box component="div" sx={videoPreviewStyles.label}>
         <StatusDot size={6} color="#c9dfb2" />
         {label}
