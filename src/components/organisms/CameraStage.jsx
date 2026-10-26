@@ -17,7 +17,8 @@ import { cameraStageStyles } from "../../theme/styles/cameraStage.js";
  * @param {React.RefObject} props.participantVideosRef - Map ref filled with the
  *   live <video> elements, indexed by participant id, for snapshots.
  * @param {boolean} props.connected - Whether the session is connected.
- * @param {string} props.callStatus - Room status line for the waiting banner.
+ * @param {string} props.callStatus - A notice or error to float over the stage
+ *   (empty when everything is running normally).
  * @param {number|null} props.countdown - 3..1, "📸", or null when idle.
  * @param {number} props.shotNumber - Current burst shot (for the label).
  * @param {number} props.totalShots - Total burst length.
@@ -77,7 +78,7 @@ export default function CameraStage({
           totalShots={totalShots}
         />
       )}
-      {!connected && <WaitingBanner message={callStatus} />}
+      {callStatus ? <WaitingBanner message={callStatus} /> : null}
     </Box>
   );
 }

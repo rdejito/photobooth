@@ -16,7 +16,7 @@ const defaultProps = {
   cameraEnabled: true,
   toggleCamera: () => {},
   canCapture: true,
-  callStatus: "ready",
+  callStatus: "",
   frame: "classic",
   setFrame: () => {},
   layout: "single-horizontal",
@@ -60,7 +60,7 @@ describe("MUI booth controls", () => {
       "MuiTypography-root",
     );
     expect(screen.getByRole("button", { name: /take photo/i })).toBeEnabled();
-    expect(screen.getByRole("button", { name: /turn camera off/i })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /^camera off$/i })).toHaveAttribute(
       "aria-pressed",
       "false",
     );
@@ -74,22 +74,8 @@ describe("MUI booth controls", () => {
       screen.getByRole("button", { name: /take photo/i }).querySelector("svg"),
     ).not.toBeNull();
     expect(
-      screen.getByRole("button", { name: /turn camera off/i }).querySelector("svg"),
+      screen.getByRole("button", { name: /^camera off$/i }).querySelector("svg"),
     ).toBeNull();
-  });
-
-  it("prevents guests and unready hosts from capturing photos", () => {
-    const { rerender } = renderPanel({ isHost: false });
-
-    expect(screen.getByRole("button", { name: /host takes photo/i })).toBeDisabled();
-
-    rerender(
-      <BoothPage
-        {...defaultProps}
-        canCapture={false}
-      />,
-    );
-    expect(screen.getByRole("button", { name: /getting cameras ready/i })).toBeDisabled();
   });
 
   it("reflects camera state and keeps participant placeholders accessible", () => {

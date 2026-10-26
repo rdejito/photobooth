@@ -1,6 +1,8 @@
 import fs from "node:fs/promises";
+import { actionButtonVariants } from "../../theme/styles/actionButton.js";
 import { cameraStageStyles } from "../../theme/styles/cameraStage.js";
 import { boothWorkspaceStyles } from "../../theme/styles/boothTemplate.js";
+import { photoControlsPanelStyles } from "../../theme/styles/photoControls.js";
 import { videoPreviewStyles } from "../../theme/styles/videoPreview.js";
 
 describe("MUI setup docs and build coverage", () => {
@@ -71,11 +73,16 @@ describe("camera stage breakpoint regression", () => {
 });
 
 describe("booth workspace mobile regression", () => {
-  it("keeps portrait phones in one column with no side rail", () => {
+  it("keeps portrait phones in one column with the stage taking leftover height", () => {
     expect(boothWorkspaceStyles["@media (max-width: 380px)"]).toBeUndefined();
-    expect(
-      boothWorkspaceStyles["@media (max-width: 640px) and (orientation: portrait)"],
-    ).toBeUndefined();
+    const portrait =
+      boothWorkspaceStyles["@media (max-width: 640px) and (orientation: portrait)"];
+
+    expect(portrait).toMatchObject({
+      gridTemplateRows: "minmax(0, 1fr) auto auto",
+      gap: 0.75,
+    });
+    expect(portrait.gridTemplateColumns).toBeUndefined();
   });
 
   it("moves the controls into a right-hand rail only on short landscape", () => {
@@ -84,5 +91,23 @@ describe("booth workspace mobile regression", () => {
         "@media (orientation: landscape) and (max-height: 500px)"
       ].gridTemplateColumns,
     ).toBe("minmax(0, 1fr) 168px");
+  });
+});
+
+describe("booth button theme regression", () => {
+  it("keeps secondary buttons on the dark theme instead of white", () => {
+    expect(actionButtonVariants.secondary.sx.backgroundColor).toBe(
+      "rgba(255,255,255,0.06)",
+    );
+    expect(actionButtonVariants.secondary.sx.color).toBe("#fffaf7");
+  });
+
+  it("gives leave booth a destructive outline", () => {
+    expect(actionButtonVariants.quiet.variant).toBe("outlined");
+    expect(actionButtonVariants.quiet.sx.color).toBe("#e5736b");
+  });
+
+  it("never lets a dock label wrap beside its icon", () => {
+    expect(photoControlsPanelStyles["& .MuiButton-root"].whiteSpace).toBe("nowrap");
   });
 });

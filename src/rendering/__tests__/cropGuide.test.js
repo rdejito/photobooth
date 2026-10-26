@@ -3,7 +3,6 @@ import {
   GROUP_SHOT_WIDTH,
   cameraCropRegion,
   coverSource,
-  ensureVisibleRegion,
   groupGridShape,
   groupTileFrames,
   groupTileSourceRect,
@@ -217,24 +216,5 @@ describe("cameraCropRegion", () => {
     // No vertical crop on the group tile; only the slot's slight trim remains.
     expect(region.height).toBeGreaterThan(0.9);
     expect(region.width).toBeCloseTo(0.75, 3);
-  });
-});
-
-describe("ensureVisibleRegion", () => {
-  it("grows an unreadably small region while keeping it centered", () => {
-    const region = ensureVisibleRegion(
-      { x: 0.45, y: 0.45, width: 0.02, height: 0.02 },
-      0.12,
-    );
-
-    expect(region.width).toBeCloseTo(0.12);
-    expect(region.height).toBeCloseTo(0.12);
-    expect(region.x).toBeCloseTo(0.4);
-    expect(region.y).toBeCloseTo(0.4);
-  });
-
-  it("leaves a large region untouched", () => {
-    const region = { x: 0.1, y: 0.2, width: 0.8, height: 0.6 };
-    expect(ensureVisibleRegion(region, 0.12)).toEqual(region);
   });
 });

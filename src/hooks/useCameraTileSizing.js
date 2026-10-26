@@ -46,9 +46,10 @@ function setStyle(element, property, value) {
  * cover viewport and rotation changes that don't always surface as a container
  * resize.
  *
- * When the stylesheet supplies `--tile-max-height` (the portrait phone layout)
- * the tiles are sized width-first inside that budget and the group's own height
- * is set to the content height, letting the grid row collapse around it.
+ * The optional `--tile-max-height` custom property sizes the tiles width-first
+ * inside a height budget and lets the grid row collapse to the content height.
+ * No shipped layout sets it now that the portrait stage takes the leftover
+ * height itself; the budget remains for layouts that need a hard cap.
  */
 export function useCameraTileSizing(groupRef, participantCount) {
   useLayoutEffect(() => {

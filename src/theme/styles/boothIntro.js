@@ -9,9 +9,10 @@ import {
  * MUI styles for the booth intro band (BoothIntro) and the room-code card
  * (RoomCodeCard) it contains.
  *
- * On a portrait phone the intro moves below the stage (via `order`) and becomes
- * a share panel that absorbs the leftover height. On a short landscape phone
- * the headline is dropped and the code card fills the right-hand rail.
+ * On a portrait phone the intro moves below the stage (via `order`) and stays
+ * at its content height so the stage can take the leftover height. On a short
+ * landscape phone the headline is dropped and the code card fills the
+ * right-hand rail.
  */
 export const boothIntroStyles = {
   intro: {
@@ -34,18 +35,16 @@ export const boothIntroStyles = {
       minHeight: 0,
       flexDirection: "column",
       alignItems: "stretch",
-      justifyContent: "center",
+      justifyContent: "flex-start",
       gap: 0.75,
-      p: 1.25,
-      overflowY: "auto",
-      overscrollBehavior: "contain",
+      p: 1,
       border: "1px solid rgba(255,255,255,0.10)",
       borderRadius: "14px",
       backgroundColor: "rgba(255,255,255,0.035)",
       "& > div:first-of-type": { flex: "0 0 auto" },
     },
     [TINY_PORTRAIT]: {
-      p: 1,
+      p: 0.75,
       gap: 0.5,
       "& > div:first-of-type": { display: "none" },
     },

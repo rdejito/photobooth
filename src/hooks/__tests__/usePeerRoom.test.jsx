@@ -157,13 +157,19 @@ describe("usePeerRoom connected state", () => {
 });
 
 describe("usePeerRoom media capture", () => {
+  const preferredVideo = {
+    facingMode: { ideal: "user" },
+    width: { ideal: 1280 },
+    height: { ideal: 960 },
+  };
+
   beforeEach(() => {
     destroyMock.mockClear();
     startHostMock.mockClear();
     sessionRef.current = null;
   });
 
-  it("asks for the microphone alongside the camera", async () => {
+  it("asks for the microphone alongside a front-facing HD camera", async () => {
     const getUserMedia = vi.fn().mockResolvedValue(streamMock);
     Object.defineProperty(window.navigator, "mediaDevices", {
       configurable: true,
@@ -172,7 +178,7 @@ describe("usePeerRoom media capture", () => {
 
     await renderInRoom();
 
-    expect(getUserMedia).toHaveBeenCalledWith({ video: true, audio: true });
+    expect(getUserMedia).toHaveBeenCalledWith({ video: preferredVideo, audio: true });
     expect(startHostMock).toHaveBeenCalled();
   });
 
@@ -190,7 +196,10 @@ describe("usePeerRoom media capture", () => {
 
     await renderInRoom();
 
-    expect(getUserMedia).toHaveBeenNthCalledWith(2, { video: true, audio: false });
+    expect(getUserMedia).toHaveBeenNthCalledWith(2, {
+      video: preferredVideo,
+      audio: false,
+    });
     expect(startHostMock).toHaveBeenCalled();
     expect(sessionRef.current.options.stream).toBe(streamMock);
   });

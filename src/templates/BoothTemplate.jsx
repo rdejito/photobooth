@@ -105,6 +105,7 @@ export default function BoothTemplate({
             cameraEnabled={cameraEnabled}
             toggleCamera={toggleCamera}
             canCapture={canCapture}
+            participantCount={participants.length}
             takePhoto={takePhoto}
             leaveRoom={leaveRoom}
             galleryCount={gallery.length}

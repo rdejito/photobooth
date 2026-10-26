@@ -16,8 +16,9 @@ access. To use it with remote guests, use a publicly reachable HTTPS deployment.
 1. One person selects **Create a room** and shares the displayed room code.
 2. Up to three guests open the same website, enter that code, and select
    **Join with code**.
-3. Use **Turn camera off** or **Turn camera on** in the booth controls whenever
-   you want to pause or resume your video.
+3. Use **Camera off** or **Camera on** in the booth controls whenever you want to
+   pause or resume your video. The live preview is mirrored and already shows
+   the exact area that will be saved in the photo.
 4. When everyone's camera is ready, the room creator takes the photo. Choose a
    frame in the preview, then select **Save and share photo** to send it to
    guests and add it to **Photos**.

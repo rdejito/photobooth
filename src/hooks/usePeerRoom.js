@@ -26,17 +26,17 @@ const getCameraPermissionMessage = (error) => {
 };
 
 /**
- * Requests the booth's media stream: camera plus microphone, so guests can talk
- * to each other while they pose. The combined request is retried video-only if
- * it fails — a missing or refused microphone must not lock someone out of the
- * booth. If the camera itself is blocked the retry fails too and the normal
- * permission message is shown.
+ * Requests the booth's media stream: a front-facing, 4:3-ish camera plus the
+ * microphone. If the mic is missing or refused, the request is retried
+ * video-only — that must not lock someone out of the booth. A blocked camera
+ * fails the retry too, and the normal permission message is shown.
  */
 async function requestBoothStream() {
+  const video = { facingMode: { ideal: "user" }, width: { ideal: 1280 }, height: { ideal: 960 } };
   try {
-    return await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    return await navigator.mediaDevices.getUserMedia({ video, audio: true });
   } catch {
-    return navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    return navigator.mediaDevices.getUserMedia({ video, audio: false });
   }
 }
 

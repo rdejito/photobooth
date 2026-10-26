@@ -78,7 +78,6 @@ export class PeerRoomSession {
       this.members = [id];
       this.cameraStates.set(id, true);
       this.publishParticipants();
-      this.onStatus("Your photobooth is ready. Share the room code to invite others.");
     });
     this.peer.on("connection", (connection) => attachRoomConnection(this, connection));
     this.peer.on("call", (call) => this.attachIncomingCall(call));
@@ -99,7 +98,6 @@ export class PeerRoomSession {
       this.publishParticipants();
       const connection = this.peer.connect(this.roomHostId);
       attachRoomConnection(this, connection);
-      this.onStatus("Joining the photobooth...");
     });
     this.peer.on("call", (call) => this.attachIncomingCall(call));
     this.peer.on("error", (error) => this.handlePeerError(error));
@@ -155,7 +153,6 @@ export class PeerRoomSession {
       this.remoteStreams.set(call.peer, stream);
       this.markPeerConnected(call.peer);
       this.publishParticipants();
-      this.onStatus("Participants are connected. Ready for a photo.");
     });
     // `close` is the authoritative teardown signal: PeerJS follows every
     // MediaConnection `error` with `close` (see the IceNegotiator), so treating

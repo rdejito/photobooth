@@ -19,9 +19,13 @@ export const videoPreviewStyles = {
     "@media (max-width: 640px)": { borderRadius: "8px" },
   },
   video: {
+    position: "absolute",
+    top: 0,
+    left: 0,
     display: "block",
     width: "100%",
     height: "100%",
+    maxWidth: "none",
     objectFit: "cover",
     transform: "scaleX(-1)",
     "&.is-camera-off": { visibility: "hidden" },
@@ -93,46 +97,4 @@ export const videoPreviewStyles = {
   },
   // The green "live" indicator is a StatusDot atom rendered by VideoPreview.
   selfTag: { color: "#e9b69a", fontSize: 8, fontWeight: 700, letterSpacing: 0.8 },
-};
-
-/**
- * Styles for the camera crop/framing guide (CropGuide): a dashed safe-area
- * frame with a dimmed surround, plus its caption. Percentage-based geometry is
- * set inline by the component so the guide scales with the tile.
- */
-export const cropGuideStyles = {
-  layer: {
-    position: "absolute",
-    inset: 0,
-    pointerEvents: "none",
-  },
-  frame: {
-    position: "absolute",
-    border: "1.5px dashed rgba(255,250,247,0.85)",
-    borderRadius: "6px",
-    // Clipped by the tile's overflow, this dims everything outside the guide.
-    boxShadow: "0 0 0 2000px rgba(12,9,17,0.42)",
-    transition: "left 160ms ease, top 160ms ease, width 160ms ease, height 160ms ease",
-    "@media (max-width: 640px)": {
-      borderWidth: 1,
-      borderRadius: "4px",
-    },
-  },
-  caption: {
-    position: "absolute",
-    top: 3,
-    left: 3,
-    px: 0.5,
-    py: "1px",
-    borderRadius: "4px",
-    backgroundColor: "rgba(22,19,30,0.72)",
-    color: "rgba(255,250,247,0.9)",
-    fontSize: 8,
-    fontWeight: 700,
-    letterSpacing: 0.6,
-    lineHeight: 1.3,
-    textTransform: "uppercase",
-    whiteSpace: "nowrap",
-    "@media (max-width: 640px)": { top: 2, left: 2, fontSize: 8 },
-  },
 };

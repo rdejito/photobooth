@@ -1,13 +1,13 @@
 /**
  * Camera crop maths: one source of truth for how the composition turns each
- * participant's camera into a tile, and for the live framing guide that shows a
- * participant which part of their camera survives into the final photo.
+ * participant's camera into a tile, and for the live preview, which shows
+ * exactly the region that survives into the final photo.
  *
  * The final photo is a group shot: `composeGroupShot` cover-crops every camera
  * into a tile of a 4:3 canvas (see canvas.js), then each canvas is cover-cropped
  * into a themed frame slot (see slotPainting.js). `cameraCropRegion` composes
  * those two crops into a single normalized rectangle over the camera frame so
- * the on-screen guide and the composition can never drift apart.
+ * the live preview and the composition can never drift apart.
  */
 import { getSlotRects } from "./frames/units/designUnits.js";
 
@@ -70,7 +70,7 @@ function threeUpFrames() {
  * Composition crop focus. Horizontal crops stay centered; when a tall stream
  * (a phone held upright) is cropped into a wider tile, the vertical crop keeps
  * the upper part of the frame so heads survive and only the lower body is
- * trimmed. The same focus feeds both the composition and the live guide, so
+ * trimmed. The same focus feeds both the composition and the live preview, so
  * they can never disagree.
  */
 export const GROUP_TILE_FOCUS = { x: 0.5, y: 0.15 };
@@ -129,7 +129,7 @@ export function groupTileSourceRect(
 /**
  * The group-canvas rectangle a themed frame slot cover-crops into, derived from
  * the layout's design-unit slot size. `borderWidth` is the frame's slot border,
- * which insets the photo exactly as `drawSlotCanvas` does, so the live guide
+ * which insets the photo exactly as `drawSlotCanvas` does, so the live preview
  * does not promise rows the border will trim.
  */
 export function slotSourceRect(layout, borderWidth = 0) {
@@ -210,24 +210,4 @@ function tileRegion(tile, videoWidth, videoHeight) {
     width: tile.width / videoWidth,
     height: tile.height / videoHeight,
   };
-}
-
-/**
- * Clamps a region to a minimum fractional size so extreme aspect ratios never
- * shrink the guide into an unreadable sliver. The clamped region stays centered
- * on the true region and inside the frame.
- */
-export function ensureVisibleRegion(region, minFraction) {
-  const min = Math.max(0, Math.min(1, minFraction));
-  const width = Math.max(region.width, min);
-  const height = Math.max(region.height, min);
-  const x = Math.min(
-    Math.max(0, region.x - (width - region.width) / 2),
-    1 - width,
-  );
-  const y = Math.min(
-    Math.max(0, region.y - (height - region.height) / 2),
-    1 - height,
-  );
-  return { x, y, width, height };
 }

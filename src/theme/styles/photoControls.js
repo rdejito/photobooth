@@ -23,15 +23,27 @@ export const photoControlsPanelStyles = {
   background: "linear-gradient(155deg, rgba(47,39,54,0.88), rgba(30,27,40,0.94))",
   boxShadow: "0 18px 45px rgba(0,0,0,0.19), inset 0 1px rgba(255,255,255,0.04)",
   "& .MuiButton-root": {
+    display: "inline-flex",
     width: "100%",
+    minWidth: 0,
     minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 0.75,
     px: 1.75,
     borderRadius: "10px",
     fontSize: 11,
     fontWeight: 700,
     lineHeight: 1.2,
+    whiteSpace: "nowrap",
     "&:focus-visible": { outline: "2px solid #f4c66d", outlineOffset: 3 },
-    "&:disabled": { cursor: "not-allowed", opacity: 0.55 },
+    "&:disabled, &.Mui-disabled": {
+      cursor: "not-allowed",
+      opacity: 1,
+      color: "rgba(255,250,247,0.62)",
+      borderColor: "rgba(255,255,255,0.12)",
+      backgroundColor: "rgba(255,255,255,0.06)",
+    },
   },
   "& .capture-icon": { display: "block", width: 17, height: 14, flex: "0 0 auto" },
   [TABLET]: { gap: 1.25, p: "9px 11px" },
@@ -46,9 +58,8 @@ export const photoControlsPanelStyles = {
     p: "10px",
     borderRadius: "14px",
     borderColor: "rgba(255,255,255,0.10)",
-    // One text size and one tap height for every dock button: the secondary
-    // labels ("Turn camera off") are long enough to wrap if the primary is
-    // allowed to be bigger than its neighbours.
+    // One text size and one tap height for every dock button: the longer
+    // secondary label ("Camera off") must not wrap beside the primary.
     "& .MuiButton-root": { minHeight: 48, px: 0.5, fontSize: 12 },
   },
   [PHONE_PORTRAIT]: {

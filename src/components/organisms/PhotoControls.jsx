@@ -7,20 +7,30 @@ import {
   photoControlSlotStyles,
 } from "../../theme/styles/photoControls.js";
 
+/** The capture button's copy: one clear state per readiness combination. */
+function captureLabel(isHost, canCapture, participantCount) {
+  if (!isHost) return "Host takes the photo";
+  if (canCapture) return "Take photo";
+  if (participantCount <= 1) return "Waiting for a guest";
+  return "Connecting cameras…";
+}
+
 /**
  * PhotoControls — the booth's bottom action bar: take photo, camera toggle, the
  * saved-photos counter and the leave-booth button. On a portrait phone the
  * primary action gets a full-width row of its own above the secondary three.
  *
- * The take button is the authority on readiness: guests see "Host takes
- * photo" (disabled) and a host with a not-yet-ready room sees a spinner-ish
- * "Getting cameras ready" state.
+ * The take button is the authority on readiness and always stays visible: a
+ * guest sees that the host shoots, a host alone sees it is waiting for a guest,
+ * a host with cameras still connecting sees that, and only a fully ready room
+ * offers an enabled "Take photo".
  *
  * @param {object} props
  * @param {boolean} props.isHost - Whether this device hosts the room.
  * @param {boolean} props.cameraEnabled - Whether this device's camera is on.
  * @param {() => void} props.toggleCamera - Flips the local camera.
  * @param {boolean} props.canCapture - True when every participant is ready.
+ * @param {number} props.participantCount - People currently in the room.
  * @param {() => void} props.takePhoto - Starts the four-shot capture.
  * @param {() => void} props.leaveRoom - Leaves the booth session.
  * @param {number} props.galleryCount - Number of saved snapshots.
@@ -31,6 +41,7 @@ export default function PhotoControls({
   cameraEnabled,
   toggleCamera,
   canCapture,
+  participantCount,
   takePhoto,
   leaveRoom,
   galleryCount,
@@ -46,7 +57,7 @@ export default function PhotoControls({
           sx={photoControlSlotStyles.takePhoto}
         >
           <CameraIcon className="capture-icon" />
-          {isHost ? (canCapture ? "Take photo" : "Getting cameras ready") : "Host takes photo"}
+          {captureLabel(isHost, canCapture, participantCount)}
         </ActionButton>
         <ActionButton
           onClick={toggleCamera}
@@ -54,7 +65,7 @@ export default function PhotoControls({
           ariaPressed={!cameraEnabled}
           sx={photoControlSlotStyles.camera}
         >
-          {cameraEnabled ? "Turn camera off" : "Turn camera on"}
+          {cameraEnabled ? "Camera off" : "Camera on"}
         </ActionButton>
         <ActionButton
           onClick={toggleGallery}

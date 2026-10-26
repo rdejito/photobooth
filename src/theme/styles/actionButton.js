@@ -24,19 +24,25 @@ export const actionButtonVariants = {
   secondary: {
     variant: "outlined",
     sx: {
-      color: "text.primary",
-      borderColor: "#e5e7eb",
-      backgroundColor: "#ffffff",
-      "&:hover": { borderColor: "#d1d5db", backgroundColor: "#f9fafb" },
+      color: "#fffaf7",
+      borderColor: "rgba(255,255,255,0.18)",
+      backgroundColor: "rgba(255,255,255,0.06)",
+      "&:hover": {
+        borderColor: "rgba(255,255,255,0.32)",
+        backgroundColor: "rgba(255,255,255,0.12)",
+      },
     },
   },
   quiet: {
-    variant: "text",
+    variant: "outlined",
     sx: {
-      color: "rgba(255,250,247,0.7)",
+      color: "#e5736b",
+      borderColor: "rgba(229,115,107,0.45)",
+      backgroundColor: "transparent",
       "&:hover": {
-        backgroundColor: "rgba(255,255,255,0.08)",
-        color: "#fffaf7",
+        borderColor: "rgba(229,115,107,0.75)",
+        backgroundColor: "rgba(229,115,107,0.1)",
+        color: "#f08a82",
       },
     },
   },

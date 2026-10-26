@@ -1,5 +1,6 @@
 import {
   PHONE,
+  PHONE_PORTRAIT,
   SHORT_LANDSCAPE,
   TABLET,
 } from "../breakpoints.js";
@@ -10,8 +11,8 @@ import {
  *
  * The share panel and controls live inside the workspace (as `display:
  * contents` on wide screens) so the portrait layout can order them below the
- * stage and let the share panel absorb the leftover height. Short landscape
- * stacks them in a right-hand rail instead, keeping the stage full-height.
+ * stage while the stage takes the leftover height. Short landscape stacks them
+ * in a right-hand rail instead, keeping the stage full-height.
  */
 export const boothShellStyles = {
   display: "grid",
@@ -33,6 +34,13 @@ export const boothWorkspaceStyles = {
   [TABLET]: { gap: 1.25 },
   "@media (min-width: 1600px)": { gap: 1.75 },
   [PHONE]: { gap: 0.75 },
+  // Portrait phones give all leftover height to the stage so the share panel
+  // and the dock sit at their natural height and stay on screen without a
+  // scroll.
+  [PHONE_PORTRAIT]: {
+    gridTemplateRows: "minmax(0, 1fr) auto auto",
+    gap: 0.75,
+  },
   [SHORT_LANDSCAPE]: {
     gridTemplateColumns: "minmax(0, 1fr) 168px",
     gridTemplateRows: "minmax(0, 1fr)",

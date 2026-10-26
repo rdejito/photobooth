@@ -12,9 +12,9 @@ import {
  * MUI styles for the camera stage (CameraStage): the framed video grid, its
  * label, and the countdown / waiting overlays that float above it.
  *
- * On a portrait phone the stage is ordered above the share panel and takes its
- * content height; `useCameraTileSizing` reads `--tile-max-height` to size the
- * tiles width-first inside that budget.
+ * On a portrait phone the stage is ordered above the share panel, and the
+ * workspace gives the stage all the leftover height while the share panel and
+ * the dock keep their content height.
  */
 export const cameraStageStyles = {
   stage: {
@@ -84,10 +84,6 @@ export const cameraStageStyles = {
     [PHONE]: { gap: 0.75 },
     [NARROW]: { gap: 0.5 },
     [PHONE_PORTRAIT]: {
-      // Width-first sizing: the hook fits the tiles inside this height budget,
-      // then reports the shorter content height back to the grid.
-      "--tile-max-height": "52dvh",
-      flex: "0 0 auto",
       gap: 0.5,
     },
     [TINY_PORTRAIT]: { gap: 0.375 },

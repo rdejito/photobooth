@@ -85,14 +85,13 @@ directions. The picker thumbnail is derived from the renderer itself
   the file's own docstring both describe a convention the code does not follow.
 - The README's project-structure tree predates `src/lib/rejoin.js`,
   `src/services/PeerRoomLifecycle.js`, `src/rendering/cropGuide.js`,
-  `src/components/atoms/CropGuide.jsx`,
   `src/components/organisms/PhotoCustomizePanel.jsx` and
   `src/rendering/frames/units/`.
 
 ## Where to look
 
 - `docs/plans/user-stories/` — behaviour specs behind the recent work:
-  rejoin, mixed-device layouts, the crop guide, guest live preview.
+  rejoin, mixed-device layouts, the live preview crop, guest live preview.
 - `docs/plans/reports/UX-REPORT.md` — UX findings.
 - `docs/plans/reports/CODE-REVIEW.md` — open defects, dated.
 

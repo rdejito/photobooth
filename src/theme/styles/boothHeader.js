@@ -46,21 +46,24 @@ export const boothHeaderStyles = {
 /** The connection-count pill (ConnectionPill). */
 export const connectionPillStyles = {
   display: "inline-flex",
+  flexShrink: 0,
   alignItems: "center",
-  gap: 1,
-  px: 1.5,
-  py: 1,
+  gap: 0.75,
+  px: 1.25,
+  py: 0.75,
   border: "1px solid rgba(255,255,255,0.12)",
   borderRadius: "99px",
   backgroundColor: "rgba(255,255,255,0.035)",
   color: "rgba(255,250,247,0.65)",
   fontSize: 11,
+  lineHeight: 1.2,
+  whiteSpace: "nowrap",
   "&[data-connected='true'] .connection-dot": {
     backgroundColor: "#c9dfb2",
     boxShadow: "0 0 10px rgba(201,223,178,0.65)",
   },
-  [PHONE]: { maxWidth: 156, px: 1, py: 0.75, fontSize: 11 },
-  [SHORT_LANDSCAPE]: { maxWidth: 156, px: 1, py: 0.5, fontSize: 10 },
+  [PHONE]: { gap: 0.625, px: 1, py: 0.5, fontSize: 10 },
+  [SHORT_LANDSCAPE]: { gap: 0.5, px: 0.875, py: 0.375, fontSize: 9 },
 };
 
 // The connection dot itself is a StatusDot atom rendered inside the pill; the
