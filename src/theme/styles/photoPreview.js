@@ -1,13 +1,17 @@
+import { PHONE } from "../breakpoints.js";
+
 /**
  * MUI styles for the photo preview dialog (PhotoPreview): the transparent
  * dialog chrome, the framed image, the optional event-name field and the
- * save/download/take-another action row.
+ * save/download/take-another action row. On a phone the dialog becomes a
+ * full-width bottom sheet with a sticky action bar.
  */
 export const photoPreviewEditorStyles = {
   display: "grid",
   width: "min(720px, 100%)",
   justifyItems: "center",
   gap: 1.25,
+  [PHONE]: { width: "100%", gap: 1.125 },
 };
 
 export const photoPreviewImageStyles = {
@@ -20,6 +24,11 @@ export const photoPreviewImageStyles = {
   border: "5px solid #fffaf7",
   borderRadius: "13px",
   boxShadow: "0 22px 60px rgba(0,0,0,0.35)",
+  [PHONE]: {
+    maxHeight: "32dvh",
+    borderWidth: 4,
+    borderRadius: "10px",
+  },
 };
 
 export const photoPreviewDialogStyles = {
@@ -38,6 +47,25 @@ export const photoPreviewDialogStyles = {
     overflow: "auto",
     backgroundColor: "transparent",
     boxShadow: "none",
+  },
+  [PHONE]: {
+    "& .MuiDialog-container": { alignItems: "flex-end" },
+    "& .MuiDialog-paper": {
+      width: "100%",
+      maxWidth: "100%",
+      maxHeight: "94dvh",
+      alignContent: "start",
+      justifyItems: "stretch",
+      m: 0,
+      px: 1.75,
+      pt: 1.5,
+      pb: "calc(10px + env(safe-area-inset-bottom, 0px))",
+      overflowY: "auto",
+      border: "1px solid rgba(255,255,255,0.1)",
+      borderRadius: "20px 20px 0 0",
+      backgroundColor: "#201c2a",
+      boxShadow: "0 -18px 50px rgba(0,0,0,0.4)",
+    },
   },
 };
 
@@ -58,6 +86,7 @@ export const photoPreviewContentStyles = {
   justifyItems: "center",
   p: 0,
   overflow: "visible",
+  [PHONE]: { justifyItems: "stretch" },
 };
 
 export const photoPreviewEventFieldStyles = {
@@ -73,6 +102,12 @@ export const photoPreviewEventFieldStyles = {
   "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.14)" },
   "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(233,167,127,0.45)" },
   "& .MuiInputBase-input::placeholder": { color: "rgba(255,250,247,0.35)", opacity: 1 },
+  [PHONE]: {
+    width: "100%",
+    // 16px keeps iOS Safari from zooming the sheet when the field focuses.
+    "& .MuiInputBase-root": { fontSize: 16, minHeight: 48 },
+    "& .MuiInputLabel-root": { fontSize: 14 },
+  },
 };
 
 export const photoPreviewActionsStyles = {
@@ -81,6 +116,19 @@ export const photoPreviewActionsStyles = {
   justifyContent: "center",
   gap: 1,
   mt: 0.25,
+  [PHONE]: {
+    position: "sticky",
+    zIndex: 1,
+    bottom: 0,
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: 0.75,
+    pt: 1,
+    pb: 0.25,
+    mt: 0,
+    backgroundColor: "#201c2a",
+    "& .MuiButton-root": { minHeight: 48, fontSize: 14 },
+  },
 };
 
 export const photoPreviewCaptionStyles = {
@@ -89,4 +137,5 @@ export const photoPreviewCaptionStyles = {
   fontSize: 10,
   lineHeight: 1.5,
   textAlign: "center",
+  [PHONE]: { mt: 0, fontSize: 11 },
 };

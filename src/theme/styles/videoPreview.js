@@ -88,7 +88,7 @@ export const videoPreviewStyles = {
       gap: 0.5,
       px: 0.75,
       py: 0.5,
-      fontSize: 8,
+      fontSize: 10,
     },
   },
   // The green "live" indicator is a StatusDot atom rendered by VideoPreview.
@@ -133,6 +133,6 @@ export const cropGuideStyles = {
     lineHeight: 1.3,
     textTransform: "uppercase",
     whiteSpace: "nowrap",
-    "@media (max-width: 640px)": { top: 2, left: 2, fontSize: 6 },
+    "@media (max-width: 640px)": { top: 2, left: 2, fontSize: 8 },
   },
 };

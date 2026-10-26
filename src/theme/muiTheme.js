@@ -35,15 +35,19 @@ const muiTheme = createTheme({
     },
     MuiCssBaseline: {
       styleOverrides: {
+        // The booth is a locked 100dvh dark screen; a light document behind it
+        // shows through on iOS overscroll/toolbar resize as a pale band.
         html: {
-          background: "#fffaf6",
+          background: "#171423",
+          overflowX: "hidden",
         },
         body: {
           margin: 0,
           minHeight: "100vh",
-          color: "#111827",
-          background:
-            "radial-gradient(circle at top, rgba(251, 191, 36, 0.18), transparent 30%), linear-gradient(135deg, #fffaf6 0%, #fff7ed 100%)",
+          overflowX: "hidden",
+          overscrollBehavior: "none",
+          color: "#fffaf7",
+          background: "#171423",
           fontSynthesis: "none",
           textRendering: "optimizeLegibility",
           WebkitFontSmoothing: "antialiased",

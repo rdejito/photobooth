@@ -117,12 +117,14 @@ export default function App() {
               fontFamily: '"Avenir Next", Avenir, "Segoe UI", sans-serif',
               "@supports (height: 100dvh)": { height: "100dvh" },
               "@media (max-width: 640px)": {
-                paddingRight: 12,
-                paddingLeft: 12,
+                paddingTop: "env(safe-area-inset-top, 0px)",
+                paddingRight: 0,
+                paddingBottom: "env(safe-area-inset-bottom, 0px)",
+                paddingLeft: 0,
               },
-              "@media (max-width: 380px)": {
-                paddingRight: 8,
-                paddingLeft: 8,
+              "@media (max-width: 640px) and (orientation: landscape)": {
+                paddingRight: "env(safe-area-inset-right, 0px)",
+                paddingLeft: "env(safe-area-inset-left, 0px)",
               },
             }
       }

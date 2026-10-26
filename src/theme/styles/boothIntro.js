@@ -1,9 +1,21 @@
+import {
+  PHONE,
+  PHONE_PORTRAIT,
+  SHORT_LANDSCAPE,
+  TINY_PORTRAIT,
+} from "../breakpoints.js";
+
 /**
  * MUI styles for the booth intro band (BoothIntro) and the room-code card
  * (RoomCodeCard) it contains.
+ *
+ * On a portrait phone the intro moves below the stage (via `order`) and becomes
+ * a share panel that absorbs the leftover height. On a short landscape phone
+ * the headline is dropped and the code card fills the right-hand rail.
  */
 export const boothIntroStyles = {
   intro: {
+    order: 1,
     display: "flex",
     minHeight: 104,
     alignItems: "center",
@@ -11,18 +23,41 @@ export const boothIntroStyles = {
     gap: 3,
     py: 1.5,
     "@media (max-height: 720px) and (min-width: 641px)": { minHeight: 84, py: 0.875 },
-    "@media (max-width: 640px)": {
-      minHeight: 78,
-      gap: 1.125,
-      py: 0.875,
+    [PHONE]: {
+      minHeight: 0,
+      gap: 1,
+      py: 0.75,
       "& > div:first-of-type": { minWidth: 0, flex: 1 },
     },
-    "@media (max-width: 640px) and (orientation: portrait)": { minHeight: 78 },
-    "@media (max-width: 640px) and (orientation: landscape) and (max-height: 500px)": {
-      minHeight: 56,
-      py: 0.5,
+    [PHONE_PORTRAIT]: {
+      order: 2,
+      minHeight: 0,
+      flexDirection: "column",
+      alignItems: "stretch",
+      justifyContent: "center",
+      gap: 0.75,
+      p: 1.25,
+      overflowY: "auto",
+      border: "1px solid rgba(255,255,255,0.09)",
+      borderRadius: "14px",
+      backgroundColor: "rgba(255,255,255,0.035)",
+      "& > div:first-of-type": { flex: "0 0 auto" },
     },
-    "@media (max-width: 360px) and (orientation: portrait)": { minHeight: 70 },
+    [TINY_PORTRAIT]: {
+      p: 1,
+      gap: 0.5,
+      "& > div:first-of-type": { display: "none" },
+    },
+    [SHORT_LANDSCAPE]: {
+      order: 1,
+      display: "block",
+      minHeight: 0,
+      py: 0,
+      overflow: "visible",
+      border: 0,
+      backgroundColor: "transparent",
+      "& > div:first-of-type": { display: "none" },
+    },
   },
   kicker: {
     mb: 1,
@@ -30,10 +65,8 @@ export const boothIntroStyles = {
     fontSize: 9,
     fontWeight: 700,
     letterSpacing: 1.8,
-    "@media (max-width: 640px)": { mb: 0.5, fontSize: 8 },
-    "@media (max-width: 640px) and (orientation: landscape) and (max-height: 500px)": {
-      mb: 0.25,
-    },
+    [PHONE]: { mb: 0.5, fontSize: 8 },
+    [SHORT_LANDSCAPE]: { display: "none" },
   },
   title: {
     m: 0,
@@ -45,10 +78,9 @@ export const boothIntroStyles = {
     "@media (max-height: 720px) and (min-width: 641px)": {
       fontSize: "clamp(28px, 3.4vw, 38px)",
     },
-    "@media (max-width: 640px)": { fontSize: "clamp(21px, 6vw, 30px)", letterSpacing: "-0.6px" },
-    "@media (max-width: 640px) and (orientation: landscape) and (max-height: 500px)": {
-      fontSize: 22,
-    },
+    [PHONE]: { fontSize: "clamp(21px, 6vw, 30px)", letterSpacing: "-0.6px" },
+    [PHONE_PORTRAIT]: { fontSize: 24 },
+    [SHORT_LANDSCAPE]: { display: "none" },
   },
   description: {
     mt: 1,
@@ -57,7 +89,14 @@ export const boothIntroStyles = {
     fontSize: 12,
     lineHeight: 1.6,
     "@media (max-height: 720px) and (min-width: 641px)": { mt: 0.5, fontSize: 11 },
-    "@media (max-width: 640px)": { display: "none" },
+    [PHONE]: { display: "none" },
+    [PHONE_PORTRAIT]: {
+      display: "block",
+      mt: 1,
+      maxWidth: "52ch",
+      fontSize: 13,
+      lineHeight: 1.55,
+    },
   },
 };
 
@@ -94,7 +133,7 @@ export const roomCodeCardStyles = {
     fontSize: 9,
     "&:disabled": { cursor: "default", opacity: 0.5 },
   },
-  "@media (max-width: 640px)": {
+  [PHONE]: {
     width: 124,
     minWidth: 124,
     gap: 0.25,
@@ -105,13 +144,45 @@ export const roomCodeCardStyles = {
     "& > small": { display: "none" },
     "& .MuiButton-root": { mt: 0.125, px: 0.75, py: 0.375, fontSize: 8 },
   },
-  "@media (max-width: 380px)": { width: 112, minWidth: 112 },
-  "@media (max-width: 360px) and (orientation: portrait)": { width: 104, minWidth: 104 },
-  "@media (max-width: 640px) and (orientation: landscape) and (max-height: 500px)": {
+  [PHONE_PORTRAIT]: {
+    display: "grid",
+    width: "100%",
+    minWidth: 0,
+    gridTemplateColumns: "minmax(0, 1fr) auto",
+    gridTemplateRows: "auto auto",
+    columnGap: 1,
+    rowGap: 0.125,
+    px: 1.25,
+    py: 0.875,
+    "& > span": { gridColumn: 1, gridRow: 1, fontSize: 8 },
+    "& > strong": { gridColumn: 1, gridRow: 2, fontSize: 21, letterSpacing: 2 },
+    "& > small": { display: "none" },
+    "& .MuiButton-root": {
+      gridColumn: 2,
+      gridRow: "1 / span 2",
+      alignSelf: "center",
+      mt: 0,
+      minHeight: 44,
+      px: 1.5,
+      py: 0,
+      fontSize: 12,
+    },
+  },
+  [SHORT_LANDSCAPE]: {
+    width: "100%",
+    minWidth: 0,
     gap: 0.125,
     px: 0.875,
-    py: 0.5,
-    "& > strong": { fontSize: 14 },
-    "& .MuiButton-root": { px: 0.625, py: 0.25 },
+    py: 0.75,
+    "& > span": { fontSize: 7 },
+    "& > strong": { fontSize: 15 },
+    "& > small": { display: "none" },
+    "& .MuiButton-root": {
+      alignSelf: "stretch",
+      minHeight: 40,
+      px: 0.75,
+      py: 0.5,
+      fontSize: 10,
+    },
   },
 };

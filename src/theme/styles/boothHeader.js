@@ -1,3 +1,9 @@
+import {
+  NARROW,
+  PHONE,
+  SHORT_LANDSCAPE,
+} from "../breakpoints.js";
+
 /**
  * MUI styles for the booth header (BoothHeader): the brand lockup and the
  * connection-count pill.
@@ -9,7 +15,8 @@ export const boothHeaderStyles = {
     alignItems: "center",
     justifyContent: "space-between",
     borderBottom: "1px solid rgba(255,255,255,0.09)",
-    "@media (max-width: 640px)": { minHeight: 48 },
+    [PHONE]: { minHeight: 44 },
+    [SHORT_LANDSCAPE]: { minHeight: 40 },
   },
   brand: {
     display: "inline-flex",
@@ -18,8 +25,9 @@ export const boothHeaderStyles = {
     color: "#fffaf7",
     fontFamily: 'Georgia, "Times New Roman", serif',
     fontSize: 18,
-    "@media (max-width: 640px)": { gap: 0.875, fontSize: 14 },
-    "@media (max-width: 380px)": { gap: 0.75 },
+    [PHONE]: { gap: 0.875, fontSize: 15 },
+    [NARROW]: { gap: 0.75 },
+    [SHORT_LANDSCAPE]: { fontSize: 15 },
   },
   brandMark: {
     display: "grid",
@@ -31,7 +39,7 @@ export const boothHeaderStyles = {
     color: "#ffc59d",
     backgroundColor: "rgba(233,167,127,0.09)",
     "& svg": { width: 22, height: 19 },
-    "@media (max-width: 380px)": { width: 29, "& svg": { width: 19 } },
+    [NARROW]: { width: 29, "& svg": { width: 19 } },
   },
 };
 
@@ -51,7 +59,8 @@ export const connectionPillStyles = {
     backgroundColor: "#c9dfb2",
     boxShadow: "0 0 10px rgba(201,223,178,0.65)",
   },
-  "@media (max-width: 640px)": { maxWidth: 142, px: 1, py: 0.75, fontSize: 8 },
+  [PHONE]: { maxWidth: 156, px: 1, py: 0.75, fontSize: 11 },
+  [SHORT_LANDSCAPE]: { maxWidth: 156, px: 1, py: 0.5, fontSize: 10 },
 };
 
 // The connection dot itself is a StatusDot atom rendered inside the pill; the

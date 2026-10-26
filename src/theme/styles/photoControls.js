@@ -1,8 +1,18 @@
+import {
+  PHONE,
+  PHONE_PORTRAIT,
+  SHORT_LANDSCAPE,
+  TABLET,
+} from "../breakpoints.js";
+
 /**
  * MUI styles for the booth control bar (PhotoControls): the frosted panel and
- * the four-button action grid (camera, take photo, photos, leave).
+ * the action grid. On a portrait phone the primary action takes its own full
+ * row above three equal secondary buttons; a short landscape phone stacks the
+ * same buttons in the right-hand rail.
  */
 export const photoControlsPanelStyles = {
+  order: 3,
   display: "flex",
   minWidth: 0,
   alignItems: "center",
@@ -19,36 +29,34 @@ export const photoControlsPanelStyles = {
     borderRadius: "10px",
     fontSize: 11,
     fontWeight: 700,
+    lineHeight: 1.2,
     "&:focus-visible": { outline: "2px solid #f4c66d", outlineOffset: 3 },
     "&:disabled": { cursor: "not-allowed", opacity: 0.55 },
   },
   "& .capture-icon": { display: "block", width: 17, height: 14, flex: "0 0 auto" },
-  "@media (min-width: 641px) and (max-width: 1024px)": { gap: 1.25, p: "9px 11px" },
+  [TABLET]: { gap: 1.25, p: "9px 11px" },
   "@media (min-width: 1600px)": { gap: 1.75, p: "12px 16px" },
   "@media (max-height: 720px) and (min-width: 641px)": {
     gap: 1,
     p: "8px 10px",
     "& .MuiButton-root": { minHeight: 36 },
   },
-  "@media (max-width: 640px)": {
-    gap: 1,
-    p: 1,
-    borderRadius: "13px",
-    "& .MuiButton-root": { minHeight: 40, px: 0.625, fontSize: 9 },
+  [PHONE]: {
+    gap: 0.75,
+    p: 0.875,
+    borderRadius: "14px",
+    "& .MuiButton-root": { minHeight: 46, px: 0.75, fontSize: 12 },
   },
-  "@media (max-width: 640px) and (orientation: portrait)": {
-    display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr)",
-    gap: 0.875,
-    p: 1,
-    "& .MuiButton-root": { minHeight: 38, fontSize: "clamp(8px, 2.4vw, 10px)" },
+  [PHONE_PORTRAIT]: {
+    p: "10px",
+    "& .MuiButton-root": { minHeight: 50, fontSize: 13 },
   },
-  "@media (max-width: 640px) and (orientation: landscape) and (max-height: 500px)": {
-    gap: 0.625,
+  [SHORT_LANDSCAPE]: {
+    gap: 0.5,
     p: 0.75,
-    "& .MuiButton-root": { minHeight: 25, px: 0.5, fontSize: 7 },
+    borderRadius: "11px",
+    "& .MuiButton-root": { minHeight: 40, px: 0.5, fontSize: 11 },
   },
-  "@media (max-width: 360px) and (orientation: portrait)": { gap: 0.625, p: 0.75 },
 };
 
 export const photoControlsActionsStyles = {
@@ -56,10 +64,25 @@ export const photoControlsActionsStyles = {
   flex: 1,
   gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
   gap: 1.125,
-  "@media (max-width: 640px) and (orientation: landscape) and (max-height: 500px)": {
+  [PHONE]: { gap: 0.75 },
+  [PHONE_PORTRAIT]: {
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gap: 0.625,
+  },
+  [SHORT_LANDSCAPE]: {
     gridTemplateColumns: "minmax(0, 1fr)",
     gap: 0.5,
   },
-  "@media (max-width: 640px) and (orientation: portrait)": { gap: 0.75 },
-  "@media (max-width: 360px) and (orientation: portrait)": { gap: 0.5 },
+};
+
+/**
+ * Explicit grid slots for the portrait dock. The primary action spans the
+ * first row; camera, photos and leave share the second. `sx` objects with only
+ * a media query stay inert on every other layout.
+ */
+export const photoControlSlotStyles = {
+  camera: { [PHONE_PORTRAIT]: { gridColumn: "1", gridRow: "2" } },
+  takePhoto: { [PHONE_PORTRAIT]: { gridColumn: "1 / -1", gridRow: "1" } },
+  photos: { [PHONE_PORTRAIT]: { gridColumn: "2", gridRow: "2" } },
+  leave: { [PHONE_PORTRAIT]: { gridColumn: "3", gridRow: "2" } },
 };

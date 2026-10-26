@@ -1,3 +1,5 @@
+import { PHONE, NARROW } from "../breakpoints.js";
+
 /**
  * MUI styles for the shared picker option button (PickerOptionButton), used by
  * both the frame and layout pickers. Keeping the shell here is what lets the
@@ -26,6 +28,7 @@ export function optionButtonStyles(selected, compact) {
       backgroundColor: selected ? "rgba(233,167,127,0.16)" : "rgba(255,255,255,0.075)",
       transform: "translateY(-1px)",
     },
+    [PHONE]: { minHeight: 44, fontSize: 11 },
   };
 }
 
@@ -57,4 +60,6 @@ export const optionCaptionStyles = {
   fontWeight: 600,
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
+  [PHONE]: { fontSize: 11 },
+  [NARROW]: { fontSize: 10 },
 };

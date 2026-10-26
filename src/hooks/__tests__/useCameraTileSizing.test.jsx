@@ -116,8 +116,7 @@ describe("useCameraTileSizing", () => {
     );
   });
 
-  it("keeps mixed camera ratios inside their equal grid tracks", () => {
-    stageSize = { width: 1200, height: 400 };
+  it("keeps mixed camera ratios inside their equal grid tracks", () => {    stageSize = { width: 1200, height: 400 };
     window.getComputedStyle.mockImplementation((element) => {
       if (element.dataset.testid === "group") {
         return { columnGap: "24px", rowGap: "24px" };
@@ -138,5 +137,68 @@ describe("useCameraTileSizing", () => {
       expect(parseFloat(tile.style.height)).toBeLessThanOrEqual(400);
     }
     expect(tiles[0].style.height).toBe(tiles[1].style.height);
+  });
+
+  it("fills the width and reports content height inside the portrait budget", () => {
+    stageSize = { width: 360, height: 0 };
+    window.getComputedStyle.mockImplementation((element) => {
+      if (element.dataset.testid === "group") {
+        return {
+          columnGap: "6px",
+          rowGap: "6px",
+          getPropertyValue: (name) =>
+            name === "--tile-max-height" ? "420px" : "",
+        };
+      }
+      return { aspectRatio: "4 / 3" };
+    });
+
+    const view = render(<Stage count={1} />);
+
+    expect(view.getByTestId("tile-0").style.width).toBe("360px");
+    expect(view.getByTestId("tile-0").style.height).toBe("270px");
+    expect(view.getByTestId("group").style.height).toBe("270px");
+  });
+
+  it("caps a tall portrait camera at the budget height", () => {
+    stageSize = { width: 360, height: 0 };
+    window.getComputedStyle.mockImplementation((element) => {
+      if (element.dataset.testid === "group") {
+        return {
+          columnGap: "6px",
+          rowGap: "6px",
+          getPropertyValue: (name) =>
+            name === "--tile-max-height" ? "420px" : "",
+        };
+      }
+      return { aspectRatio: "9 / 16" };
+    });
+
+    const view = render(<Stage count={1} />);
+
+    expect(view.getByTestId("tile-0").style.height).toBe("420px");
+    expect(view.getByTestId("tile-0").style.width).toBe("236px");
+    expect(view.getByTestId("group").style.height).toBe("420px");
+  });
+
+  it("resolves a viewport-unit budget against the live viewport", () => {
+    stageSize = { width: 360, height: 0 };
+    window.getComputedStyle.mockImplementation((element) => {
+      if (element.dataset.testid === "group") {
+        return {
+          columnGap: "6px",
+          rowGap: "6px",
+          getPropertyValue: (name) =>
+            name === "--tile-max-height" ? "50vh" : "",
+        };
+      }
+      return { aspectRatio: "9 / 16" };
+    });
+
+    const view = render(<Stage count={1} />);
+
+    // jsdom's default viewport is 768px tall, so 50vh is a 384px budget.
+    expect(view.getByTestId("group").style.height).toBe("384px");
+    expect(view.getByTestId("tile-0").style.width).toBe("216px");
   });
 });

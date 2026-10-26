@@ -10,6 +10,7 @@ import GalleryDialog from "../components/molecules/GalleryDialog.jsx";
 import { downloadDataUrl, littleMomentsFilename } from "../lib/download.js";
 import {
   boothShellStyles,
+  boothSideStyles,
   boothWorkspaceStyles,
 } from "../theme/styles/boothTemplate.js";
 
@@ -80,12 +81,6 @@ export default function BoothTemplate({
   return (
     <Box component="section" className="room-shell" sx={boothShellStyles}>
       <BoothHeader connected={connected} participantCount={participants.length} />
-      <BoothIntro
-        connected={connected}
-        roomCode={roomCode}
-        copyStatus={copyStatus}
-        onCopy={copyRoomCode}
-      />
       <Box sx={boothWorkspaceStyles}>
         <CameraStage
           participants={participants}
@@ -98,24 +93,32 @@ export default function BoothTemplate({
           layout={layout}
           frame={frame}
         />
-        <PhotoControls
-          isHost={isHost}
-          cameraEnabled={cameraEnabled}
-          toggleCamera={toggleCamera}
-          canCapture={canCapture}
-          takePhoto={takePhoto}
-          leaveRoom={leaveRoom}
-          galleryCount={gallery.length}
-          toggleGallery={() => setShowGallery((visible) => !visible)}
-        />
-        {canCustomizePreview && !showPreview && (
-          <PhotoCustomizePanel
-            frame={frame}
-            setFrame={setFrame}
-            layout={layout}
-            setLayout={setLayout}
+        <Box sx={boothSideStyles}>
+          <BoothIntro
+            connected={connected}
+            roomCode={roomCode}
+            copyStatus={copyStatus}
+            onCopy={copyRoomCode}
           />
-        )}
+          <PhotoControls
+            isHost={isHost}
+            cameraEnabled={cameraEnabled}
+            toggleCamera={toggleCamera}
+            canCapture={canCapture}
+            takePhoto={takePhoto}
+            leaveRoom={leaveRoom}
+            galleryCount={gallery.length}
+            toggleGallery={() => setShowGallery((visible) => !visible)}
+          />
+          {canCustomizePreview && !showPreview && (
+            <PhotoCustomizePanel
+              frame={frame}
+              setFrame={setFrame}
+              layout={layout}
+              setLayout={setLayout}
+            />
+          )}
+        </Box>
       </Box>
       <PhotoPreview
         canvasRef={canvasRef}

@@ -13,6 +13,7 @@ import { actionButtonBaseStyles, actionButtonVariants } from "../../theme/styles
  * @param {boolean} [props.disabled=false] - Disables the button.
  * @param {"primary"|"secondary"|"quiet"} [props.variant="primary"] - Visual style.
  * @param {boolean} [props.ariaPressed] - Toggle state for `aria-pressed`.
+ * @param {object} [props.sx] - Extra MUI styles merged over the variant.
  */
 export default function ActionButton({
   children,
@@ -20,6 +21,7 @@ export default function ActionButton({
   disabled = false,
   variant = "primary",
   ariaPressed,
+  sx,
 }) {
   const styles = actionButtonVariants[variant] ?? actionButtonVariants.primary;
 
@@ -30,7 +32,7 @@ export default function ActionButton({
       onClick={onClick}
       disabled={disabled}
       aria-pressed={ariaPressed}
-      sx={{ ...actionButtonBaseStyles, ...styles.sx }}
+      sx={{ ...actionButtonBaseStyles, ...styles.sx, ...sx }}
     >
       {children}
     </Button>

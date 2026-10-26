@@ -32,6 +32,12 @@ export const actionButtonVariants = {
   },
   quiet: {
     variant: "text",
-    sx: { color: "#374151", "&:hover": { backgroundColor: "#f3f4f6" } },
+    sx: {
+      color: "rgba(255,250,247,0.7)",
+      "&:hover": {
+        backgroundColor: "rgba(255,255,255,0.08)",
+        color: "#fffaf7",
+      },
+    },
   },
 };

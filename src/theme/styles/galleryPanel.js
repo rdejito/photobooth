@@ -1,9 +1,17 @@
+import { PHONE, TINY_PORTRAIT } from "../breakpoints.js";
+
 /**
  * MUI styles for the snapshots panel (GalleryPanel): its padded wrapper, header
  * row, count pill, close button, empty state and the responsive photo grid.
  */
 export const galleryPanelStyles = {
-  wrapper: { width: "100%", maxHeight: "100%", p: { xs: 1.75, sm: 2.625 } },
+  wrapper: {
+    width: "100%",
+    maxHeight: "100%",
+    p: { xs: 1.75, sm: 2.625 },
+    [PHONE]: { p: 1.5 },
+    [TINY_PORTRAIT]: { p: 1.125 },
+  },
   header: {
     display: "flex",
     alignItems: "center",
@@ -11,6 +19,7 @@ export const galleryPanelStyles = {
     gap: 1.5,
     mb: 2,
     p: 0,
+    [PHONE]: { mb: 1.5, gap: 1 },
   },
   kicker: {
     mb: 0.5,
@@ -18,6 +27,7 @@ export const galleryPanelStyles = {
     fontSize: 8,
     fontWeight: 700,
     letterSpacing: "1.5px",
+    [PHONE]: { fontSize: 9 },
   },
   title: {
     m: 0,
@@ -25,6 +35,7 @@ export const galleryPanelStyles = {
     fontFamily: 'Georgia, "Times New Roman", serif',
     fontSize: 23,
     fontWeight: 400,
+    [PHONE]: { fontSize: 24 },
   },
   headerActions: { display: "flex", alignItems: "center", gap: 1 },
   countPill: {
@@ -34,6 +45,7 @@ export const galleryPanelStyles = {
     borderRadius: "99px",
     color: "rgba(255,250,247,0.6)",
     fontSize: 9,
+    [PHONE]: { px: 1, py: 0.75, fontSize: 11 },
   },
   closeButton: {
     width: 32,
@@ -43,6 +55,7 @@ export const galleryPanelStyles = {
     color: "#fffaf7",
     fontSize: 20,
     "&:hover": { backgroundColor: "rgba(255,255,255,0.12)" },
+    [PHONE]: { width: 44, height: 44, fontSize: 24 },
   },
   empty: {
     display: "flex",
@@ -55,16 +68,27 @@ export const galleryPanelStyles = {
     borderRadius: "11px",
     color: "rgba(255,250,247,0.58)",
     textAlign: "center",
+    [PHONE]: { minHeight: 180, p: 2 },
   },
   emptyGlyph: { color: "#e9b69a", fontSize: 25 },
-  emptyTitle: { color: "rgba(255,250,247,0.83)", fontSize: 11, fontWeight: 600 },
-  emptyDetail: { color: "rgba(255,250,247,0.46)", fontSize: 10 },
+  emptyTitle: {
+    color: "rgba(255,250,247,0.83)",
+    fontSize: 11,
+    fontWeight: 600,
+    [PHONE]: { fontSize: 14 },
+  },
+  emptyDetail: {
+    color: "rgba(255,250,247,0.46)",
+    fontSize: 10,
+    [PHONE]: { fontSize: 12 },
+  },
   grid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fill, minmax(185px, 1fr))",
     gap: 1.625,
-    "@media (max-width: 640px)": {
-      gridTemplateColumns: "repeat(auto-fill, minmax(145px, 1fr))",
+    [PHONE]: {
+      gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+      gap: 1,
     },
   },
 };
@@ -78,4 +102,5 @@ export const galleryButtonStyles = {
   fontWeight: 600,
   transition: "background 150ms ease",
   "&:focus-visible": { outline: "2px solid #f4c66d", outlineOffset: 3 },
+  [PHONE]: { minHeight: 44, px: 1, fontSize: 12 },
 };

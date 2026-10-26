@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import { cameraStageStyles } from "../../theme/styles/cameraStage.js";
+import { boothWorkspaceStyles } from "../../theme/styles/boothTemplate.js";
 import { videoPreviewStyles } from "../../theme/styles/videoPreview.js";
 
 describe("MUI setup docs and build coverage", () => {
@@ -66,5 +67,22 @@ describe("camera stage breakpoint regression", () => {
     const label = videoPreviewStyles.label;
     expect(label.maxWidth).toBe("calc(100% - 22px)");
     expect(label["@media (max-width: 640px)"].maxWidth).toBe("calc(100% - 10px)");
+  });
+});
+
+describe("booth workspace mobile regression", () => {
+  it("keeps portrait phones in one column with no side rail", () => {
+    expect(boothWorkspaceStyles["@media (max-width: 380px)"]).toBeUndefined();
+    expect(
+      boothWorkspaceStyles["@media (max-width: 640px) and (orientation: portrait)"],
+    ).toBeUndefined();
+  });
+
+  it("moves the controls into a right-hand rail only on short landscape", () => {
+    expect(
+      boothWorkspaceStyles[
+        "@media (orientation: landscape) and (max-height: 500px)"
+      ].gridTemplateColumns,
+    ).toBe("minmax(0, 1fr) 168px");
   });
 });

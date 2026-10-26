@@ -1,3 +1,5 @@
+import { NARROW } from "../breakpoints.js";
+
 /**
  * MUI styles for the layout picker (LayoutPicker): its fieldset, the options
  * grid and the miniature layout-sample illustrations drawn inside each option.
@@ -24,7 +26,7 @@ export const layoutPickerStyles = {
   },
   compactOptions: {
     gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-    "@media (max-width: 380px)": { gridTemplateColumns: "repeat(2, minmax(0, 1fr))" },
+    [NARROW]: { gridTemplateColumns: "repeat(2, minmax(0, 1fr))" },
   },
   previewBox: {
     backgroundColor: "rgba(255,255,255,0.07)",

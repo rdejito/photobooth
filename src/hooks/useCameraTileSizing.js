@@ -9,6 +9,23 @@ function readAspectRatio(element) {
   return width > 0 && height > 0 ? width / height : 4 / 3;
 }
 
+/**
+ * Resolves the optional `--tile-max-height` budget to pixels. Custom properties
+ * come back as their token stream (`"52dvh"`), not a resolved length, so viewport
+ * units are converted against the visual viewport here.
+ */
+function readHeightBudget(styles) {
+  if (typeof styles.getPropertyValue !== "function") return 0;
+  const raw = styles.getPropertyValue("--tile-max-height").trim();
+  const value = parseFloat(raw);
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  if (raw.endsWith("vh")) {
+    const viewport = window.visualViewport?.height || window.innerHeight || 0;
+    return (viewport * value) / 100;
+  }
+  return value;
+}
+
 /** Writes a style property only when it changes (keeps observers from looping). */
 function setStyle(element, property, value) {
   if (element.style[property] !== value) element.style[property] = value;
@@ -28,6 +45,10 @@ function setStyle(element, property, value) {
  * covers container changes, and window `resize`/`orientationchange` events
  * cover viewport and rotation changes that don't always surface as a container
  * resize.
+ *
+ * When the stylesheet supplies `--tile-max-height` (the portrait phone layout)
+ * the tiles are sized width-first inside that budget and the group's own height
+ * is set to the content height, letting the grid row collapse around it.
  */
 export function useCameraTileSizing(groupRef, participantCount) {
   useLayoutEffect(() => {
@@ -42,7 +63,8 @@ export function useCameraTileSizing(groupRef, participantCount) {
       const gapX = parseFloat(styles.columnGap) || 0;
       const gapY = parseFloat(styles.rowGap) || 0;
       const containerWidth = group.clientWidth;
-      const containerHeight = group.clientHeight;
+      const heightBudget = readHeightBudget(styles);
+      const containerHeight = heightBudget || group.clientHeight;
       const ratios = tiles.map(readAspectRatio);
       const columns = chooseColumns({
         ratios,
@@ -76,6 +98,18 @@ export function useCameraTileSizing(groupRef, participantCount) {
         setStyle(tile, "height", `${Math.floor(box.height)}px`);
         setStyle(tile, "gridColumn", index === trailingTile ? "1 / -1" : "");
       });
+
+      if (!heightBudget) {
+        setStyle(group, "height", "");
+        return;
+      }
+      // Budgeted (portrait) mode: the row must shrink back to the content the
+      // tiles actually need instead of leaving centred dead space.
+      const rows = Math.ceil(tiles.length / columns);
+      const contentHeight = boxes[0]
+        ? boxes[0].height * rows + gapY * (rows - 1)
+        : 0;
+      setStyle(group, "height", `${Math.floor(contentHeight)}px`);
     };
 
     const resizeObserver = new ResizeObserver(sizeTiles);

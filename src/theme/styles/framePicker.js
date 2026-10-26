@@ -1,3 +1,5 @@
+import { PHONE } from "../breakpoints.js";
+
 /**
  * MUI styles for the frame picker (FramePicker): its fieldset, the theme-group
  * toggles, the scrollable options grid, and the frame thumbnail preview window.
@@ -25,12 +27,19 @@ export const framePickerStyles = {
     overflowY: "auto",
     overscrollBehavior: "contain",
     p: 0.125,
-    "@media (max-width: 640px)": {
-      gridTemplateColumns: "repeat(auto-fill, minmax(84px, 1fr))",
-      maxHeight: 220,
+    [PHONE]: {
+      gridTemplateColumns: "repeat(auto-fill, minmax(92px, 1fr))",
+      gap: 0.75,
+      maxHeight: 240,
     },
   },
-  note: { mt: 1, mb: 0, color: "rgba(255,250,247,0.48)", fontSize: 10 },
+  note: {
+    mt: 1,
+    mb: 0,
+    color: "rgba(255,250,247,0.48)",
+    fontSize: 10,
+    [PHONE]: { fontSize: 11 },
+  },
 };
 
 /** The segmented control used to switch frame theme groups. */
@@ -54,6 +63,7 @@ export const frameGroupTabsStyles = {
       backgroundColor: "rgba(233,167,127,0.16)",
       color: "#fffaf7",
     },
+    [PHONE]: { minHeight: 44, px: 1.5, fontSize: 12 },
   },
 };
 
