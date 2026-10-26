@@ -6,6 +6,19 @@ import BoothPage from "./pages/BoothPage.jsx";
 import { usePhotoCapture } from "./hooks/usePhotoCapture.js";
 import { usePhotoGallery } from "./hooks/usePhotoGallery.js";
 import { usePeerRoom } from "./hooks/usePeerRoom.js";
+import { PHONE, SHORT_LANDSCAPE } from "./theme/breakpoints.js";
+
+/**
+ * iOS/Android safe-area insets for the locked booth screen. Keyed on both phone
+ * breakpoints because a rotated phone is often wider than 640 px and would
+ * otherwise lose the notch padding.
+ */
+const boothSafeAreaStyles = {
+  paddingTop: "env(safe-area-inset-top, 0px)",
+  paddingRight: "env(safe-area-inset-right, 0px)",
+  paddingBottom: "env(safe-area-inset-bottom, 0px)",
+  paddingLeft: "env(safe-area-inset-left, 0px)",
+};
 
 /**
  * App — the app's root wiring.
@@ -116,16 +129,8 @@ export default function App() {
                 "radial-gradient(ellipse at 80% 20%, rgba(102,57,77,0.24), transparent 38%), radial-gradient(ellipse at 12% 85%, rgba(95,67,116,0.16), transparent 36%), #171423",
               fontFamily: '"Avenir Next", Avenir, "Segoe UI", sans-serif',
               "@supports (height: 100dvh)": { height: "100dvh" },
-              "@media (max-width: 640px)": {
-                paddingTop: "env(safe-area-inset-top, 0px)",
-                paddingRight: 0,
-                paddingBottom: "env(safe-area-inset-bottom, 0px)",
-                paddingLeft: 0,
-              },
-              "@media (max-width: 640px) and (orientation: landscape)": {
-                paddingRight: "env(safe-area-inset-right, 0px)",
-                paddingLeft: "env(safe-area-inset-left, 0px)",
-              },
+              [PHONE]: boothSafeAreaStyles,
+              [SHORT_LANDSCAPE]: boothSafeAreaStyles,
             }
       }
     >

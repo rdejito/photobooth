@@ -67,6 +67,17 @@ describe("MUI booth controls", () => {
     expect(screen.getByText(/pick a photo frame/i)).toBeInTheDocument();
   });
 
+  it("keeps the dock labels one line by only giving the primary an icon", () => {
+    renderPanel();
+
+    expect(
+      screen.getByRole("button", { name: /take photo/i }).querySelector("svg"),
+    ).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: /turn camera off/i }).querySelector("svg"),
+    ).toBeNull();
+  });
+
   it("prevents guests and unready hosts from capturing photos", () => {
     const { rerender } = renderPanel({ isHost: false });
 

@@ -54,7 +54,6 @@ export default function PhotoControls({
           ariaPressed={!cameraEnabled}
           sx={photoControlSlotStyles.camera}
         >
-          <CameraIcon className="capture-icon" />
           {cameraEnabled ? "Turn camera off" : "Turn camera on"}
         </ActionButton>
         <ActionButton

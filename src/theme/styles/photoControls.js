@@ -43,18 +43,22 @@ export const photoControlsPanelStyles = {
   },
   [PHONE]: {
     gap: 0.75,
-    p: 0.875,
+    p: "10px",
     borderRadius: "14px",
-    "& .MuiButton-root": { minHeight: 46, px: 0.75, fontSize: 12 },
+    borderColor: "rgba(255,255,255,0.10)",
+    // One text size and one tap height for every dock button: the secondary
+    // labels ("Turn camera off") are long enough to wrap if the primary is
+    // allowed to be bigger than its neighbours.
+    "& .MuiButton-root": { minHeight: 48, px: 0.5, fontSize: 12 },
   },
   [PHONE_PORTRAIT]: {
-    p: "10px",
-    "& .MuiButton-root": { minHeight: 50, fontSize: 13 },
+    "& .MuiButton-root": { minHeight: 50 },
   },
   [SHORT_LANDSCAPE]: {
     gap: 0.5,
     p: 0.75,
-    borderRadius: "11px",
+    borderRadius: "12px",
+    borderColor: "rgba(255,255,255,0.10)",
     "& .MuiButton-root": { minHeight: 40, px: 0.5, fontSize: 11 },
   },
 };

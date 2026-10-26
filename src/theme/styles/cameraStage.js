@@ -30,8 +30,10 @@ export const cameraStageStyles = {
     boxShadow: "0 22px 60px rgba(0,0,0,0.24), inset 0 1px rgba(255,255,255,0.045)",
     "@media (min-width: 1600px)": { p: 1.75 },
     [TABLET]: { p: 1.375, borderRadius: "16px" },
-    [PHONE]: { p: 1.125, borderRadius: "13px" },
-    [PHONE_PORTRAIT]: { order: 1, borderRadius: "12px" },
+    // Phone surfaces share one radius and border alpha with the share panel and
+    // the control dock, so the three stacked blocks read as one system.
+    [PHONE]: { p: 1.125, borderColor: "rgba(255,255,255,0.10)", borderRadius: "14px" },
+    [PHONE_PORTRAIT]: { order: 1 },
     [TINY_PORTRAIT]: { p: 1 },
   },
   stageLabel: {
