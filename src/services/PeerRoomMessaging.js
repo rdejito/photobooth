@@ -6,6 +6,11 @@ import {
 } from "./PeerRoomBroadcast.js";
 import { handleGuestJoin } from "./PeerRoomLifecycle.js";
 
+// Shown when ICE gives up: signaling reached the host, but neither network let
+// the data/media path through. This is the case a TURN relay exists to fix.
+export const DIRECT_CONNECTION_FAILED_MESSAGE =
+  "The direct connection to that room failed — one of the two networks is blocking peer-to-peer traffic. Try another network or mobile data.";
+
 export function attachRoomConnection(session, connection) {
   session.connections.set(connection.peer, connection);
   connection.on("open", () => {
@@ -18,11 +23,19 @@ export function attachRoomConnection(session, connection) {
       });
     }
   });
+  // PeerJS emits `negotiation-failed` the moment ICE reaches `failed`, which is
+  // well before the join timeout, so a guest hears the real reason instead of
+  // waiting out the generic "couldn't reach that room" message.
+  connection.on("iceStateChanged", (state) => {
+    if (state !== "failed" || session.isHost || session.joined) return;
+    session.failJoin(DIRECT_CONNECTION_FAILED_MESSAGE, "ice-failed");
+  });
   connection.on("data", (message) => handleRoomMessage(session, connection, message));
   connection.on("close", () => {
     if (!session.isHost && !session.joined) {
       session.failJoin(
         "The connection closed before joining. Check the room code and make sure the host's booth is still open.",
+        "connection-closed",
       );
     }
     session.handlePeerDisconnected(connection.peer);
@@ -31,8 +44,10 @@ export function attachRoomConnection(session, connection) {
     if (!session.isHost && !session.joined) {
       const message = error.type === "peer-unavailable"
         ? "Couldn't find that room. Check the code and make sure the host's booth is still open."
-        : "Couldn't connect to that room. Check your network and try again.";
-      session.failJoin(message);
+        : error.type === "negotiation-failed"
+          ? DIRECT_CONNECTION_FAILED_MESSAGE
+          : "Couldn't connect to that room. Check your network and try again.";
+      session.failJoin(message, error.type === "negotiation-failed" ? "ice-failed" : error.type);
     }
     session.handlePeerDisconnected(connection.peer);
   });

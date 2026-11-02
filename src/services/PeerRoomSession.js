@@ -1,4 +1,4 @@
-import Peer from "peerjs";
+import { createPeer } from "./peerFactory.js";
 import { roomToPeerId } from "../lib/utils.js";
 import { PhotoTransfer } from "./PhotoTransfer.js";
 import { attachRoomConnection, receiveRoster } from "./PeerRoomMessaging.js";
@@ -12,7 +12,9 @@ import {
 } from "./PeerRoomBroadcast.js";
 import {
   destroyRoom,
+  failJoin,
   handlePeerDisconnected,
+  markJoined,
   markPeerConnected,
   removeMemberFromRoom,
 } from "./PeerRoomLifecycle.js";
@@ -71,7 +73,7 @@ export class PeerRoomSession {
 
   startHost(room) {
     this.isHost = true;
-    this.peer = new Peer(roomToPeerId(room));
+    this.peer = createPeer(roomToPeerId(room));
     this.peer.on("open", (id) => {
       this.peerId = id;
       this.roomHostId = id;
@@ -87,10 +89,10 @@ export class PeerRoomSession {
   startGuest() {
     this.joinTimeout = setTimeout(() => {
       this.failJoin(
-        "Couldn't reach that room. Check the code and make sure the host's booth is still open. If it is, your network may be blocking the connection.",
+        "Couldn't reach that room. Check the code and make sure the host's booth is still open. If it is, the two networks couldn't connect directly — try another network or mobile data.",
       );
     }, 15000);
-    this.peer = new Peer();
+    this.peer = createPeer();
     this.peer.on("open", (id) => {
       this.peerId = id;
       this.members = [id];
@@ -113,16 +115,12 @@ export class PeerRoomSession {
   }
 
   markJoined() {
-    this.joined = true;
-    clearTimeout(this.joinTimeout);
-    this.joinTimeout = null;
+    markJoined(this);
   }
 
-  failJoin(message) {
-    if (this.destroyed || this.joined) return;
-    clearTimeout(this.joinTimeout);
-    this.joinTimeout = null;
-    this.onConnectionFailed(message);
+  /** Abandons a join that never completed; see `failJoin` in the lifecycle. */
+  failJoin(message, reason) {
+    failJoin(this, message, reason);
   }
 
   connectMembers() {
@@ -225,7 +223,9 @@ export class PeerRoomSession {
     }[error.type] || `Connection error: ${error.type}`;
 
     this.onStatus(message);
-    if (error.type === "unavailable-id" || (!this.isHost && !this.joined)) this.failJoin(message);
+    if (error.type === "unavailable-id" || (!this.isHost && !this.joined)) {
+      this.failJoin(message, error.type);
+    }
   }
 
   broadcastPhoto(photo) {

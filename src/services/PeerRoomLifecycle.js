@@ -10,6 +10,38 @@ import { createRejoinToken } from "../lib/rejoin.js";
  */
 
 /**
+ * Marks a join as complete so the pending join timeout stops watching it.
+ *
+ * @param {object} session - The joining session.
+ */
+export function markJoined(session) {
+  session.joined = true;
+  clearTimeout(session.joinTimeout);
+  session.joinTimeout = null;
+}
+
+/**
+ * Abandons a join that never completed. `reason` names the layer that failed —
+ * `timeout`, `ice-failed`, or a PeerJS error type — so a failure caused by the
+ * network path can be told apart from a missing room.
+ *
+ * @param {object} session - The joining session.
+ * @param {string} message - User-facing explanation.
+ * @param {string} [reason] - Which layer failed; defaults to the join timeout.
+ */
+export function failJoin(session, message, reason = "timeout") {
+  if (session.destroyed || session.joined) return;
+  clearTimeout(session.joinTimeout);
+  session.joinTimeout = null;
+  if (reason === "ice-failed") {
+    console.info(
+      "Direct connection failed: both networks refused the peer-to-peer path. Configure TURN to relay through it (see README).",
+    );
+  }
+  session.onConnectionFailed(message, reason);
+}
+
+/**
  * Marks a peer as reconnected, cancelling any pending removal. Called when a
  * fresh stream arrives so a brief drop can recover in place.
  */

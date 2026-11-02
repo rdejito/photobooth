@@ -121,8 +121,10 @@ photobooth/
     │   │                          PeerJS data connection
     │   ├── PeerRoomMessaging.js   Room protocol: join/leave, roster, camera state,
     │   │                          countdown, photo relay, room-full/closed handling
-    │   └── PeerRoomSession.js     Owns the Peer, the mesh of calls and data
-    │                              connections, and participant state
+    │   ├── PeerRoomSession.js     Owns the Peer, the mesh of calls and data
+    │   │                          connections, and participant state
+    │   └── peerFactory.js         Creates the Peer with the configured ICE/TURN
+    │                              servers
     ├── hooks/
     │   ├── usePeerRoom.js         Camera access + room lifecycle (create/join/leave,
     │   │                          toggle camera, connection status)
@@ -217,11 +219,17 @@ localhost is allowed for local development.
   the host in `PeerRoomMessaging.js`.
 - PeerJS's public broker is used to coordinate connections. No application
   backend is required; video streams are sent directly between browsers.
-- The app does not configure a TURN relay. Some restrictive networks may prevent
-  browsers from connecting.
+- Direct peer-to-peer connections need both networks to allow UDP. Networks
+  behind symmetric NAT or that block UDP often cannot connect without a TURN
+  relay. PeerJS's shared free TURN is not guaranteed, so remote friends on
+  different networks may fail to join. Set `VITE_TURN_URLS` (with optional
+  `VITE_TURN_USERNAME`/`VITE_TURN_CREDENTIAL`) in a build-time `.env.local` to
+  use your own relay; plain `turn:` URLs automatically get a `?transport=tcp`
+  twin. See `.env.example`.
 - If joining cannot complete, the app returns to the room form with a diagnostic
-  message. Confirm the host is still in the booth and try another network if
-  WebRTC connections are blocked.
+  message. Confirm the host is still in the booth and try another network or
+  mobile data if WebRTC connections are blocked. If both networks allow UDP
+  but ICE still fails, configure a TURN relay.
 - For remote guests, deploy the site to a publicly reachable HTTPS host. A local
   development server is only reachable by devices on the same network unless you
   use a secure tunnel.
